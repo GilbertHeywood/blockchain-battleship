@@ -1,96 +1,86 @@
+require('babel-polyfill');
 var BattleShip = artifacts.require("./BattleShip.sol");
 
-contract('BattleShip', function(accounts) {
+contract('BattleShip', async (accounts) => {
 
-  it("should not have any players defined when the contract is created", function() {
-    var battleship;
-    return BattleShip.deployed().then(function(instance) {
-      battleship = instance;
-      return battleship.player1.call();
-    }).then(function(player1){
-      assert.equal(player1,"0x0000000000000000000000000000000000000000","Player1 was defined")
-      return battleship.player2.call();
-    }).then(function(player2){
-      assert.equal(player2,"0x0000000000000000000000000000000000000000","Player2 was defined")
-    })
+  it("should not have any players defined when the contract is created", async () => {
+    var battleship = await BattleShip.deployed();
+    let player1 = await battleship.player1.call();
+    assert.equal(player1,"0x0000000000000000000000000000000000000000","Player1 was defined");
+    let player2 = await battleship.player2.call();
+    assert.equal(player2,"0x0000000000000000000000000000000000000000","Player1 was defined");
   });
 
-  it("should the players should be assigned when a new game starts", function() {
-    var battleship;
-    return BattleShip.deployed().then(function(instance) {
-      battleship = instance;
-      return battleship.newGame(accounts[1],{from: accounts[0]});
-    }).then(function(tx) {
-      return battleship.player1.call();
-    }).then(function(player1){
-      assert.equal(player1,accounts[0],"Player1 was defined")
-      return battleship.player2.call();
-    }).then(function(player2){
-      assert.equal(player2,accounts[1],"Player2 was defined")
-    })
+  it("the players should be assigned when a new game starts", async () => {
+    var battleship = await BattleShip.deployed();
+    await battleship.newGame(accounts[1],{from: accounts[0]});
+    let player1 = await battleship.player1.call();
+    assert.equal(player1,accounts[0],"Player1 was not defined correctly");
+    let player2 = await battleship.player2.call();
+    assert.equal(player2,accounts[1],"Player2 was not defined correctly");
   });
 
 
+  it("the players should be still attached to contract", async () => {
+    var battleship = await BattleShip.deployed();
+    let player1 = await battleship.player1.call();
+    assert.equal(player1,accounts[0],"Player1 was not defined correctly");
+    let player2 = await battleship.player2.call();
+    assert.equal(player2,accounts[1],"Player2 was not defined correctly");
+  });
+
+  it("the players shouldn't be able to start the game yet", async () => {
+    var battleship = await BattleShip.deployed();
+    try{
+      await battleship.startGame();
+    }catch(e){
+
+    }
+    let starting = await battleship.starting.call();
+    assert.equal(starting, false, "The game started without both players putting in funds");
+  });
+
+  it("the players should be able to add funds", async () => {
+    let _player1funds = 10;
+    let _player2funds = 20;
+    var battleship = await BattleShip.deployed();
+    await battleship.addFunds({from: accounts[0], value: _player1funds});
+    await battleship.addFunds({from: accounts[1], value: _player2funds});
+    let player1funds = await battleship.getFunds.call(accounts[0]);
+    let player2funds = await battleship.getFunds.call(accounts[1]);
+    assert.equal(player1funds.toNumber(),_player1funds,"Player1 was not defined correctly");
+    assert.equal(player2funds.toNumber(),_player2funds,"Player2 was not defined correctly");
+  });
 
 
-  // it("should put 10000 MetaCoin in the first account", function() {
-  //   return MetaCoin.deployed().then(function(instance) {
-  //     return instance.getBalance.call(accounts[0]);
-  //   }).then(function(balance) {
-  //     assert.equal(balance.valueOf(), 10000, "10000 wasn't in the first account");
-  //   });
-  // });
-  // it("should call a function that depends on a linked library", function() {
-  //   var meta;
-  //   var metaCoinBalance;
-  //   var metaCoinEthBalance;
+  it("the players should be able to start the game", async () => {
+    var battleship = await BattleShip.deployed();
+    await battleship.startGame();
+    let starting = await battleship.starting.call();
+    assert.equal(starting, true, "The game didn't started when funds were in the account");
+  });
 
-  //   return MetaCoin.deployed().then(function(instance) {
-  //     meta = instance;
-  //     return meta.getBalance.call(accounts[0]);
-  //   }).then(function(outCoinBalance) {
-  //     metaCoinBalance = outCoinBalance.toNumber();
-  //     return meta.getBalanceInEth.call(accounts[0]);
-  //   }).then(function(outCoinBalanceEth) {
-  //     metaCoinEthBalance = outCoinBalanceEth.toNumber();
-  //   }).then(function() {
-  //     assert.equal(metaCoinEthBalance, 2 * metaCoinBalance, "Library function returned unexpeced function, linkage may be broken");
-  //   });
-  // });
+  it("the players should be able to see their board", async () => {
+    var battleship = await BattleShip.deployed();
+    let board = await battleship.showBoard({from: accounts[0]});
+    let boardNumbers = board.map((row) => {
+      return row.map((col) => col.toNumber());
+    });
+    console.log(boardNumbers);
+    let allZero = boardNumbers.reduce((c,row) => c && row.reduce((c,ele) => c && ele == 0, true), true);
+    assert.equal(allZero,true,"The elements are not all initialized to zero");
+  });
 
-  // it("should send coin correctly", function() {
-  //   var meta;
+  it("the players should be able to place their pieces", async () => {
+    var battleship = await BattleShip.deployed();
+    await battleship.placeShip(0,2,0,0,{from: accounts[0]});
+    let board = await battleship.showBoard({from: accounts[0]});
+    let boardNumbers = board.map((row) => {
+      return row.map((col) => col.toNumber());
+    });
+    assert.equal(boardNumbers[0][0],2,"Piece not placed right");
+    assert.equal(boardNumbers[1][0],2,"Piece not placed right");
+    assert.equal(boardNumbers[2][0],2,"Piece not placed right");
+  });
 
-  //   //    Get initial balances of first and second account.
-  //   var account_one = accounts[0];
-  //   var account_two = accounts[1];
-
-  //   var account_one_starting_balance;
-  //   var account_two_starting_balance;
-  //   var account_one_ending_balance;
-  //   var account_two_ending_balance;
-
-  //   var amount = 10;
-
-  //   return MetaCoin.deployed().then(function(instance) {
-  //     meta = instance;
-  //     return meta.getBalance.call(account_one);
-  //   }).then(function(balance) {
-  //     account_one_starting_balance = balance.toNumber();
-  //     return meta.getBalance.call(account_two);
-  //   }).then(function(balance) {
-  //     account_two_starting_balance = balance.toNumber();
-  //     return meta.sendCoin(account_two, amount, {from: account_one});
-  //   }).then(function() {
-  //     return meta.getBalance.call(account_one);
-  //   }).then(function(balance) {
-  //     account_one_ending_balance = balance.toNumber();
-  //     return meta.getBalance.call(account_two);
-  //   }).then(function(balance) {
-  //     account_two_ending_balance = balance.toNumber();
-
-  //     assert.equal(account_one_ending_balance, account_one_starting_balance - amount, "Amount wasn't correctly taken from the sender");
-  //     assert.equal(account_two_ending_balance, account_two_starting_balance + amount, "Amount wasn't correctly sent to the receiver");
-  //   });
-  // });
 });

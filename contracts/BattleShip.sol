@@ -1,5 +1,7 @@
 pragma solidity ^0.4.2;
 
+import "./StringLib.sol";
+
 contract BattleShip {
     
     address public player1;
@@ -48,6 +50,10 @@ contract BattleShip {
                 playerGrids[player][i][j] = 0;
             }
         }
+    }
+
+    function getFunds(address player) constant returns(uint funds){
+        return playerFunds[player];
     }
 
     // 0x14723a09acff6d2a60dcdf7aa4aff308fddc160c
