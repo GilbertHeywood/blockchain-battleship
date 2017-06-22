@@ -4,6 +4,8 @@ contract BattleShip {
     
     address public player1;
     address public player2;
+    address public currentPlayer;
+    bool public settingUp;
     bool public starting;
     bool public started;
     bool public ended;
@@ -12,12 +14,19 @@ contract BattleShip {
     uint minBoatLength;
     
     mapping(address => uint) playerFunds;
-    
-    mapping(address => uint[10][10]) playerGrids;
+    mapping(address => uint8[10][10]) playerGrids;
     mapping(address => bool[4]) playerShips;
 
     modifier isPlayer() {
         if(msg.sender == player1 || msg.sender == player2) _;
+    }
+
+    modifier isCurrentPlayer() {
+        if(msg.sender == currentPlayer) _;
+    }
+
+    modifier isSettingUp() {
+        if(settingUp) _;
     }
 
     modifier gameStarting() {
@@ -34,65 +43,86 @@ contract BattleShip {
     }
 
     function setUpBoard(address player) internal {
-        for(uint i = 0; i < 10; i++) {
-            for(uint j = 0; j < 10; j++) {
+        for(uint8 i = 0; i < 10; i++) {
+            for(uint8 j = 0; j < 10; j++) {
                 playerGrids[player][i][j] = 0;
             }
         }
     }
 
     // 0x14723a09acff6d2a60dcdf7aa4aff308fddc160c
-    function BattleShip(address _player2) {
-        player1 = msg.sender;
-        player2 = _player2;
+    function BattleShip() {
         maxBoatLength = 5;
         minBoatLength = 2;
-        setUpBoard(player1);
-        setUpBoard(player2);
     }
 
-    function addFunds() isPlayer payable  {
+    function newGame(address _player2) {
+        player1 = msg.sender;
+        player2 = _player2;
+        currentPlayer = player1;
+        settingUp = true;
+        setUpBoard(player1);
+        setUpBoard(player2);
+    } 
+
+    function showBoard() isPlayer constant returns(uint8[10][10] board) {
+        return playerGrids[msg.sender];
+    }
+
+    function addFunds() isPlayer isSettingUp payable  {
         playerFunds[msg.sender] += msg.value;
     }
 
-    function startGame() isPlayer  {
+    function startGame() isPlayer isSettingUp {
         require(playerFunds[player1] > 0 && playerFunds[player2] > 0);
+        settingUp = false;
         starting = true;
     }
     
-    function placeShip(uint startX, uint startY, uint endX, uint endY) isPlayer {
+    function placeShip(uint8 startX, uint8 endX, uint8 startY, uint8 endY) isPlayer gameStarting{
         require(startX == endX || startY == endY);
         require(startX  < 10 && startX  >= 0 &&
                 endX    < 10 && endX    >= 0 &&
                 startY  < 10 && startY  >= 0 &&
                 endY    < 10 && endY    >= 0);
-        uint boatLength;
+        uint8 boatLength;
         if(startX == endX) {
-            boatLength = abs(int(startY) - int(endY));
+            boatLength = uint8(abs(int(startY) - int(endY)));
         }else if(startY == endY) {
-            boatLength = abs(int(startX) - int(endX));
+            boatLength = uint8(abs(int(startX) - int(endX)));
         }
         require(boatLength <= maxBoatLength && boatLength >= minBoatLength);
-        require(!(playerShips[msg.sender][boatLength - 2]));
-        playerShips[msg.sender][boatLength - 2] = true;
+        require(!(playerShips[msg.sender][boatLength - minBoatLength]));
+        playerShips[msg.sender][boatLength - minBoatLength] = true;
 
-        for(uint x = startX; x <= endX; x++) {
-            for(uint y = startY; y <= endY; y++) {
+        for(uint8 x = startX; x <= endX; x++) {
+            for(uint8 y = startY; y <= endY; y++) {
                 playerGrids[msg.sender][x][y] = boatLength;
             }   
         }
     }
 
-    function finishedPlacing() isPlayer constant returns(bool finished) {
-        for(uint i = 0; i <= maxBoatLength - minBoatLength; i++) {
-            if(!playerShips[player1][i- minBoatLength]) return false;
-            if(!playerShips[player2][i- minBoatLength]) return false;
+    function finishPlacing() isPlayer gameStarting {
+        bool ready = true;
+        for(uint8 i = 0; i <= maxBoatLength - minBoatLength; i++) {
+            if(!playerShips[player1][i- minBoatLength] || !playerShips[player2][i- minBoatLength]) {
+                ready = false;
+                break;
+            }
         }
-        return true;
+        require(ready);
+        started = true;
+        starting = false;
     }
 
-    function showBoard() isPlayer constant returns(uint[10][10] board) {
-        return playerGrids[msg.sender];
-    } 
-
+    function makeMove(uint x, uint y) gameStarted isCurrentPlayer returns(uint8 hit){
+        address otherPlayer = player2;
+        if(msg.sender == player2) otherPlayer = player1;
+        require(playerGrids[otherPlayer][x][y] < 0);
+        if(playerGrids[otherPlayer][x][y] > 0) {
+            playerGrids[otherPlayer][x][y] = 0 - playerGrids[otherPlayer][x][y];
+        }
+        currentPlayer = otherPlayer;
+        return 0 - playerGrids[otherPlayer][x][y];
+    }
 }
