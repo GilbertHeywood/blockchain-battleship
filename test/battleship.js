@@ -66,7 +66,6 @@ contract('BattleShip', async (accounts) => {
     let boardNumbers = board.map((row) => {
       return row.map((col) => col.toNumber());
     });
-    console.log(boardNumbers);
     let allZero = boardNumbers.reduce((c,row) => c && row.reduce((c,ele) => c && ele == 0, true), true);
     assert.equal(allZero,true,"The elements are not all initialized to zero");
   });
@@ -80,7 +79,65 @@ contract('BattleShip', async (accounts) => {
     });
     assert.equal(boardNumbers[0][0],2,"Piece not placed right");
     assert.equal(boardNumbers[1][0],2,"Piece not placed right");
-    assert.equal(boardNumbers[2][0],2,"Piece not placed right");
+    assert.equal(boardNumbers[2][0],0,"Piece not placed right");
+  });
+
+  it("the players should be able start game onces all pieces put down", async () => {
+    var battleship = await BattleShip.deployed();
+    await battleship.placeShip(0,3,1,1,{from: accounts[0]});
+    await battleship.placeShip(0,4,2,2,{from: accounts[0]});
+    await battleship.placeShip(0,5,3,3,{from: accounts[0]});
+    await battleship.placeShip(0,2,0,0,{from: accounts[1]});
+    await battleship.placeShip(0,3,1,1,{from: accounts[1]});
+    await battleship.placeShip(0,4,2,2,{from: accounts[1]});
+    await battleship.placeShip(0,5,3,3,{from: accounts[1]});
+
+    let board1 = await battleship.showBoard({from: accounts[0]});
+    let board1Numbers = board1.map((row) => {
+      return row.map((col) => col.toNumber());
+    });
+
+    let board2 = await battleship.showBoard({from: accounts[1]});
+    let board2Numbers = board2.map((row) => {
+      return row.map((col) => col.toNumber());
+    });
+
+    await battleship.finishPlacing();
+    let started = await battleship.started.call();
+
+    assert.equal(started,true,"Game not able to start even though pieces are down");
+
+  });
+
+  it("the players shouldn't be able to make a move if it's not their turn", async () => {
+    var battleship = await BattleShip.deployed();
+
+    try{
+      await battleship.makeMove(0,0,{from: accounts[1]});
+    }catch(e){
+
+    }
+    let board1 = await battleship.showBoard({from: accounts[0]});
+    let board1Numbers = board1.map((row) => {
+      return row.map((col) => col.toNumber());
+    });
+
+    assert.equal(board1Numbers[0][0],2,"Shouldn't have been able to make that move");
+    
+  });
+
+  it("the players should be able to move if it's their turn", async () => {
+    var battleship = await BattleShip.deployed();
+
+    await battleship.makeMove(0,0,{from: accounts[0]});
+
+    let board2 = await battleship.showBoard({from: accounts[1]});
+    let board2Numbers = board2.map((row) => {
+      return row.map((col) => col.toNumber());
+    });
+
+    assert.equal(board2Numbers[0][0],-2,"Should have been able to make that move");
+    
   });
 
 });

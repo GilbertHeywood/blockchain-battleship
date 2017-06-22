@@ -16,8 +16,10 @@ contract BattleShip {
     uint minBoatLength;
     
     mapping(address => uint) playerFunds;
-    mapping(address => uint8[10][10]) playerGrids;
+    mapping(address => int8[10][10]) playerGrids;
     mapping(address => bool[4]) playerShips;
+
+    event HitBattleShip(address currentPlayer, uint x, uint y);
 
     modifier isPlayer() {
         if(msg.sender == player1 || msg.sender == player2) _;
@@ -71,7 +73,7 @@ contract BattleShip {
         setUpBoard(player2);
     } 
 
-    function showBoard() isPlayer constant returns(uint8[10][10] board) {
+    function showBoard() isPlayer constant returns(int8[10][10] board) {
         return playerGrids[msg.sender];
     }
 
@@ -101,9 +103,12 @@ contract BattleShip {
         require(!(playerShips[msg.sender][boatLength - minBoatLength]));
         playerShips[msg.sender][boatLength - minBoatLength] = true;
 
+        uint8 placements = 0;
         for(uint8 x = startX; x <= endX; x++) {
             for(uint8 y = startY; y <= endY; y++) {
-                playerGrids[msg.sender][x][y] = boatLength;
+                playerGrids[msg.sender][x][y] = int8(boatLength);
+                placements += 1;
+                if(placements == boatLength) return;
             }   
         }
     }
@@ -111,7 +116,7 @@ contract BattleShip {
     function finishPlacing() isPlayer gameStarting {
         bool ready = true;
         for(uint8 i = 0; i <= maxBoatLength - minBoatLength; i++) {
-            if(!playerShips[player1][i- minBoatLength] || !playerShips[player2][i- minBoatLength]) {
+            if(!playerShips[player1][i] || !playerShips[player2][i]) {
                 ready = false;
                 break;
             }
@@ -121,14 +126,15 @@ contract BattleShip {
         starting = false;
     }
 
-    function makeMove(uint x, uint y) gameStarted isCurrentPlayer returns(uint8 hit){
+    function makeMove(uint x, uint y) gameStarted isCurrentPlayer returns(int8 hit){
         address otherPlayer = player2;
         if(msg.sender == player2) otherPlayer = player1;
-        require(playerGrids[otherPlayer][x][y] < 0);
+        require(playerGrids[otherPlayer][x][y] >= 0);
         if(playerGrids[otherPlayer][x][y] > 0) {
-            playerGrids[otherPlayer][x][y] = 0 - playerGrids[otherPlayer][x][y];
+            playerGrids[otherPlayer][x][y] = -1 * playerGrids[otherPlayer][x][y];
+            HitBattleShip(msg.sender,x,y);
         }
         currentPlayer = otherPlayer;
-        return 0 - playerGrids[otherPlayer][x][y];
+        return -1 * playerGrids[otherPlayer][x][y];
     }
 }
