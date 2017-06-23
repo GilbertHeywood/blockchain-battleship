@@ -12,14 +12,14 @@ contract BattleShip {
     bool public started;
     bool public ended;
 
-    uint maxBoatLength;
-    uint minBoatLength;
+    uint8 maxBoatLength;
+    uint8 minBoatLength;
     
     mapping(address => uint) playerFunds;
     mapping(address => int8[10][10]) playerGrids;
     mapping(address => bool[4]) playerShips;
 
-    event HitBattleShip(address currentPlayer, uint x, uint y);
+    event HitBattleShip(address currentPlayer, uint8 x, uint8 y, int8 pieceHit);
     event WonChallenged(address player);
     event GameEnded(address winner);
 
@@ -134,12 +134,12 @@ contract BattleShip {
         starting = false;
     }
 
-    function makeMove(uint x, uint y) gameStarted isCurrentPlayer {
+    function makeMove(uint8 x, uint8 y) gameStarted isCurrentPlayer {
         address otherPlayer = findOtherPlayer(msg.sender);
         require(playerGrids[otherPlayer][x][y] >= 0);
         if(playerGrids[otherPlayer][x][y] > 0) {
+            HitBattleShip(msg.sender,x,y,playerGrids[otherPlayer][x][y]);
             playerGrids[otherPlayer][x][y] = -1 * playerGrids[otherPlayer][x][y];
-            HitBattleShip(msg.sender,x,y);
         }
         currentPlayer = otherPlayer;
     }
@@ -151,10 +151,10 @@ contract BattleShip {
         for(uint8 i = minBoatLength; i <= maxBoatLength; i++){
             requiredToWin += i;
         }
-        int8[][] otherPlayerGrid = playerGrids[otherPlayer];
+        int8[10][10] otherPlayerGrid = playerGrids[otherPlayer];
         uint8 numberHit = 0;
-        for(uint i = 0; uint i < 10; i++) {
-            for(uint j = 0; uint j < 10; j++) {
+        for(i = 0;  i < 10; i++) {
+            for(uint j = 0;  j < 10; j++) {
                 if(otherPlayerGrid[i][j] < 0){
                     numberHit += 1;
                 }
