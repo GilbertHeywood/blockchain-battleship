@@ -20,6 +20,8 @@ contract BattleShip {
     mapping(address => bool[4]) playerShips;
 
     event HitBattleShip(address currentPlayer, uint x, uint y);
+    event WonChallenged(address player);
+    event GameEnded(address winner);
 
     modifier isPlayer() {
         if(msg.sender == player1 || msg.sender == player2) _;
@@ -52,6 +54,11 @@ contract BattleShip {
                 playerGrids[player][i][j] = 0;
             }
         }
+    }
+
+    function findOtherPlayer(address player) internal constant returns(address) {
+        if(player == player1) return player2;
+        return player1;
     }
 
     function getFunds(address player) constant returns(uint funds){
@@ -87,8 +94,9 @@ contract BattleShip {
         starting = true;
     }
     
-    function placeShip(uint8 startX, uint8 endX, uint8 startY, uint8 endY) isPlayer gameStarting{
+    function placeShip(uint8 startX, uint8 endX, uint8 startY, uint8 endY) isPlayer gameStarting {
         require(startX == endX || startY == endY);
+        require(startX < endX || startY < endY);
         require(startX  < 10 && startX  >= 0 &&
                 endX    < 10 && endX    >= 0 &&
                 startY  < 10 && startY  >= 0 &&
@@ -126,15 +134,38 @@ contract BattleShip {
         starting = false;
     }
 
-    function makeMove(uint x, uint y) gameStarted isCurrentPlayer returns(int8 hit){
-        address otherPlayer = player2;
-        if(msg.sender == player2) otherPlayer = player1;
+    function makeMove(uint x, uint y) gameStarted isCurrentPlayer {
+        address otherPlayer = findOtherPlayer(msg.sender);
         require(playerGrids[otherPlayer][x][y] >= 0);
         if(playerGrids[otherPlayer][x][y] > 0) {
             playerGrids[otherPlayer][x][y] = -1 * playerGrids[otherPlayer][x][y];
             HitBattleShip(msg.sender,x,y);
         }
         currentPlayer = otherPlayer;
-        return -1 * playerGrids[otherPlayer][x][y];
+    }
+
+    function sayWon() gameStarted {
+        WonChallenged(msg.sender);
+        address otherPlayer = findOtherPlayer(msg.sender);
+        uint8 requiredToWin = 0;
+        for(uint8 i = minBoatLength; i <= maxBoatLength; i++){
+            requiredToWin += i;
+        }
+        int8[][] otherPlayerGrid = playerGrids[otherPlayer];
+        uint8 numberHit = 0;
+        for(uint i = 0; uint i < 10; i++) {
+            for(uint j = 0; uint j < 10; j++) {
+                if(otherPlayerGrid[i][j] < 0){
+                    numberHit += 1;
+                }
+            }    
+        }
+        if(numberHit >= requiredToWin){
+            started = false;
+            ended = true;
+            GameEnded(msg.sender);
+        }
     }
 }
+
+
