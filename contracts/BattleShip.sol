@@ -65,7 +65,6 @@ contract BattleShip {
         return playerFunds[player];
     }
 
-    // 0x14723a09acff6d2a60dcdf7aa4aff308fddc160c
     function BattleShip() {
         maxBoatLength = 5;
         minBoatLength = 2;

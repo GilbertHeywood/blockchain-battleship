@@ -1,6 +1,23 @@
 require('babel-polyfill');
 let BattleShip = artifacts.require("./BattleShip.sol");
 
+
+function printBoard(board) {
+  var boardTranspose = board[0].map((col, i) => {
+    return board.map((row) => {
+      return row[i];
+    })
+  });
+  let printedBoard = boardTranspose.reduce((c, row) => {
+    return c + (row.map((col) => {
+      let ele = col.toString();
+      if(ele.length==1) ele = " " + ele;
+      return ele;
+    }) + '\n');
+  }, '');
+  return printedBoard;
+}
+
 contract('BattleShip', async (accounts) => {
 
   it("should not have any players defined when the contract is created", async () => {
@@ -189,13 +206,11 @@ contract('BattleShip', async (accounts) => {
     assert.equal(result.logs[numLogs-1].event,"GameEnded","The event had the wrong name");
     assert.equal(result.logs[numLogs-1].args.winner,accounts[0],"The wrong player was assigned to event");
 
+    let board1 = await battleship.showBoard({from: accounts[0]});
     let board2 = await battleship.showBoard({from: accounts[1]});
-    let board2Numbers = board2.map((row) => {
-      return row.map((col) => col.toNumber());
-    });
 
-    console.log(board2Numbers);
-
+    console.log(printBoard(board1));
+    console.log(printBoard(board2));
   });
 
   
