@@ -33,6 +33,10 @@ contract BattleShipGame {
         if(msg.sender == currentPlayer) _;
     }
 
+    modifier isWinner() {
+        if(msg.sender == currentPlayer) _;
+    }
+
     modifier isState(GameState state){
         IsStateCalled(gameState, state, gameState == state);
         if(state == gameState) _;
@@ -161,6 +165,17 @@ contract BattleShipGame {
             gameState = GameState.Finished;
             winner = msg.sender;
             GameEnded(msg.sender);
+        }
+    }
+
+    function withdraw() isWinner {
+        uint amount = 0;
+        amount += playerFunds[player1];
+        amount += playerFunds[player2];
+        if(amount > 0){
+            playerFunds[player1] = 0;
+            playerFunds[player2] = 0;
+            msg.sender.transfer(amount);
         }
     }
 }
