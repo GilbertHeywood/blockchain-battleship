@@ -1,9 +1,9 @@
-var StringLib = artifacts.require("./StringLib.sol");
-var BattleShip = artifacts.require("./BattleShip.sol");
+var BattleShip = artifacts.require("./BattleShipGame.sol");
 
 module.exports = function(deployer, network, accounts) {
-  deployer.deploy(StringLib);
-  deployer.link(StringLib, BattleShip);
+  // deployer.deploy(StringLib);
+  // deployer.link(StringLib, BattleShip);
   deployer.deploy(BattleShip);
+  console.log(network);
   console.log(accounts);
 };
