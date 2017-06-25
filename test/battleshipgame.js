@@ -207,14 +207,15 @@ contract('BattleShipGame', async (accounts) => {
     let result = await battleship.sayWon({from: accounts[0]});
 
     let numLogs = result.logs.length;
-    assert.equal(result.logs[numLogs-1].event,"GameEnded","The event had the wrong name");
-    assert.equal(result.logs[numLogs-1].args.winner,accounts[0],"The wrong player was assigned to event");
 
     let board1 = await battleship.showBoard({from: accounts[0]});
     let board2 = await battleship.showBoard({from: accounts[1]});
 
     console.log(printBoard(board1));
     console.log(printBoard(board2));
+    
+    assert.equal(result.logs[numLogs-1].event,"GameEnded","The event had the wrong name");
+    assert.equal(result.logs[numLogs-1].args.winner,accounts[0],"The wrong player was assigned to event");
   });
 
   

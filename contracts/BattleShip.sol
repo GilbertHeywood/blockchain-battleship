@@ -6,7 +6,7 @@ contract BattleShip {
 	mapping(address => address[]) playerGames;
 
 	function BattleShip() {
-
+		
 	}
 
 	function newGame(address player1, address player2) {
