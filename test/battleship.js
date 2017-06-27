@@ -34,7 +34,7 @@ contract('BattleShip', async (accounts) => {
 
   it("the players shouldn't be able to join game if value is wrong", async () => {
     try{
-      let result = await battleship.joinGame(gameId,{from: accounts[1], value: 20});
+      transactionData = await battleship.joinGame(gameId,{from: accounts[1], value: 20});
     }catch(e){
       // console.error(e);
     }
@@ -44,7 +44,7 @@ contract('BattleShip', async (accounts) => {
   });
 
   it("the players should be able to join game if value is right", async () => {
-    let result = await battleship.joinGame(gameId,{from: accounts[1], value: 10});
+    transactionData = await battleship.joinGame(gameId,{from: accounts[1], value: 10});
     let gameData = await battleship.games.call(gameId);
     assert.equal(gameData[0],accounts[0],"The player1 wasn't set correctly")
     assert.equal(gameData[1],accounts[1],"The player2 wasn't set correctly");
@@ -100,7 +100,6 @@ contract('BattleShip', async (accounts) => {
   });
 
   it("the players shouldn't be able to make a move if it's not their turn", async () => {
-    let battleship = await BattleShip.deployed();
 
     try{
       await battleship.makeMove(gameId,0,0,{from: accounts[1]});
@@ -117,34 +116,43 @@ contract('BattleShip', async (accounts) => {
   });
 
   it("the players should be able to move if it's their turn", async () => {
-    let battleship = await BattleShip.deployed();
 
-    let result = await battleship.makeMove(gameId,0,0,{from: accounts[0]});
+    transactionData = await battleship.makeMove(gameId,0,0,{from: accounts[0]});
 
     let board2 = await battleship.showBoard(gameId,{from: accounts[1]});
     let board2Numbers = board2.map((row) => {
       return row.map((col) => col.toNumber());
     });
     assert.equal(board2Numbers[0][0],-2,"Should have been able to make that move");
-    let numLogs = result.logs.length;
-    assert.equal(result.logs[numLogs-1].event,"HitBattleShip","The event had the wrong name");
-    assert.equal(result.logs[numLogs-1].args.pieceHit.toNumber(),2,"The piecewas the wrong one");
-    assert.equal(result.logs[numLogs-1].args.x.toNumber(),0,"The x had the wrong value");
-    assert.equal(result.logs[numLogs-1].args.y.toNumber(),0,"The y had the wrong value");
+    let numLogs = transactionData.logs.length;
+    assert.equal(transactionData.logs[numLogs-1].event,"HitBattleShip","The event had the wrong name");
+    assert.equal(transactionData.logs[numLogs-1].args.pieceHit.toNumber(),2,"The piecewas the wrong one");
+    assert.equal(transactionData.logs[numLogs-1].args.x.toNumber(),0,"The x had the wrong value");
+    assert.equal(transactionData.logs[numLogs-1].args.y.toNumber(),0,"The y had the wrong value");
   });
 
   it("the player should be able to say they won at any time", async () => {
-    let battleship = await BattleShip.deployed();
+    transactionData = await battleship.sayWon(gameId,{from: accounts[0]});
+    let numLogs = transactionData.logs.length;
+    assert.equal(transactionData.logs[numLogs-1].event,"WonChallenged","The event had the wrong name");
+    assert.equal(transactionData.logs[numLogs-1].args.player,accounts[0],"The wrong player was assigned to event");
+  });
 
-    let result = await battleship.sayWon(gameId,{from: accounts[0]});
+  it("neither player should be able to withdraw funds", async () => {
+    transactionData = await battleship.withdraw(gameId,{from: accounts[0]});
+    let numLogs = transactionData.logs.length;
+    assert.equal(transactionData.logs[numLogs-1].event,"WithdrawFailed","The event had the wrong name");
+    assert.equal(transactionData.logs[numLogs-1].args.player,accounts[0],"The wrong player was assigned to event");
+    assert.equal(transactionData.logs[numLogs-1].args.reason,"This game isnt over yet","Wrong reason for withdraw failure");
 
-    let numLogs = result.logs.length;
-    assert.equal(result.logs[numLogs-1].event,"WonChallenged","The event had the wrong name");
-    assert.equal(result.logs[numLogs-1].args.player,accounts[0],"The wrong player was assigned to event");
+    transactionData = await battleship.withdraw(gameId,{from: accounts[1]});
+    numLogs = transactionData.logs.length;
+    assert.equal(transactionData.logs[numLogs-1].event,"WithdrawFailed","The event had the wrong name");
+    assert.equal(transactionData.logs[numLogs-1].args.player,accounts[1],"The wrong player was assigned to event");
+    assert.equal(transactionData.logs[numLogs-1].args.reason,"This game isnt over yet","Wrong reason for withdraw failure");
   });
 
   it("the player should be able to win the game", async () => {
-    let battleship = await BattleShip.deployed();
     // Making moves
     await battleship.makeMove(gameId,0,0,{from: accounts[1]});
     await battleship.makeMove(gameId,1,0,{from: accounts[0]});
@@ -173,20 +181,37 @@ contract('BattleShip', async (accounts) => {
     await battleship.makeMove(gameId,0,3,{from: accounts[1]});
     await battleship.makeMove(gameId,4,3,{from: accounts[0]});
 
-    let result = await battleship.sayWon(gameId,{from: accounts[0]});
+    transactionData = await battleship.sayWon(gameId,{from: accounts[0]});
 
-    let numLogs = result.logs.length;
+    let numLogs = transactionData.logs.length;
 
     let board1 = await battleship.showBoard(gameId,{from: accounts[0]});
     let board2 = await battleship.showBoard(gameId,{from: accounts[1]});
-
-    console.log(printBoard(board1));
-    console.log(printBoard(board2));
-    
-    assert.equal(result.logs[numLogs-1].event,"GameEnded","The event had the wrong name");
-    assert.equal(result.logs[numLogs-1].args.winner,accounts[0],"The wrong player was assigned to event");
+ 
+    assert.equal(transactionData.logs[numLogs-1].event,"GameEnded","The event had the wrong name");
+    assert.equal(transactionData.logs[numLogs-1].args.winner,accounts[0],"The wrong player was assigned to event");
   });
 
-  
+  it("the winner should be able to withdraw funds", async () => {
+    transactionData = await battleship.withdraw(gameId,{from: accounts[1]});
+    let numLogs = transactionData.logs.length;
+
+    assert.equal(transactionData.logs[numLogs-1].event,"WithdrawFailed","The event had the wrong name");
+    assert.equal(transactionData.logs[numLogs-1].args.player,accounts[1],"The wrong player was assigned to event");
+    assert.equal(transactionData.logs[numLogs-1].args.reason,"This player hasnt won the game","Wrong reason for withdraw failure");
+
+    transactionData = await battleship.withdraw(gameId,{from: accounts[0]});
+    numLogs = transactionData.logs.length;
+    assert.equal(transactionData.logs[numLogs-1].event,"WinningsWithdrawn","The event had the wrong name");
+    assert.equal(transactionData.logs[numLogs-1].args.player,accounts[0],"The wrong player was assigned to event");
+    
+    transactionData = await battleship.withdraw(gameId,{from: accounts[0]});
+    numLogs = transactionData.logs.length;
+    assert.equal(transactionData.logs[numLogs-1].event,"WithdrawFailed","The event had the wrong name");
+    assert.equal(transactionData.logs[numLogs-1].args.player,accounts[0],"The wrong player was assigned to event");
+    assert.equal(transactionData.logs[numLogs-1].args.reason,"No more funds in the contract for this game","Wrong reason for withdraw failure");
+
+  });
+
 
 });

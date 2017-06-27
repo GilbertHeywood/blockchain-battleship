@@ -27,19 +27,18 @@ contract BattleShip {
     event HitBattleShip(address currentPlayer, uint8 x, uint8 y, int8 pieceHit);
     event WonChallenged(address player);
     event GameEnded(address winner);
+    event WinningsWithdrawn(bytes32 gameId, address player);
+    event WithdrawFailed(bytes32 gameId, address player, string reason);
 
     event IsStateCalled(GameState currentState, GameState comparingState, bool equal);
     event LogCurrentState(GameState state);
+
 
     modifier isPlayer(bytes32 gameId) {
         if(msg.sender == games[gameId].player1 || msg.sender == games[gameId].player2) _;
     }
 
     modifier isCurrentPlayer(bytes32 gameId) {
-        if(msg.sender == games[gameId].currentPlayer) _;
-    }
-
-    modifier isWinner(bytes32 gameId) {
         if(msg.sender == games[gameId].currentPlayer) _;
     }
 
@@ -186,9 +185,23 @@ contract BattleShip {
         }
     }
 
-    function withdraw(bytes32 gameId) isState(gameId,GameState.Finished) isWinner(gameId) {
-        uint amount = games[gameId].availablePot;
-        games[gameId].availablePot = 0;
-        msg.sender.transfer(amount);
+    function withdraw(bytes32 gameId) {
+        if(games[gameId].gameState != GameState.Finished){
+            WithdrawFailed(gameId,msg.sender,'This game isnt over yet');
+        }else{
+            uint amount = games[gameId].availablePot;
+            if(amount > 0){
+                if(msg.sender == games[gameId].winner){
+                    games[gameId].availablePot = 0;
+                    msg.sender.transfer(amount);
+                    WinningsWithdrawn(gameId, msg.sender);
+                }else{
+                    WithdrawFailed(gameId,msg.sender,'This player hasnt won the game');
+                }
+            }else{
+                WithdrawFailed(gameId,msg.sender,'No more funds in the contract for this game');
+            }
+        }
+
     }
 }
