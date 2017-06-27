@@ -204,4 +204,9 @@ contract BattleShip {
         }
 
     }
+    
+    /* This unnamed function is called whenever someone tries to send ether to the contract */
+    function () {
+        throw; // Prevents accidental sending of ether
+    }
 }
