@@ -1,102 +1,52 @@
 // Import the page's CSS. Webpack will know what to do with it.
 import "../stylesheets/app.css";
 
-// Import libraries we need.
-import { default as Web3} from 'web3';
-import { default as contract } from 'truffle-contract'
+// Angular dependencies
+import angular from 'angular';
+import angularUiRouter from 'angular-ui-router';
+// Load config
+// import './app.scss';
+import {
+  appInit
+} from './app.config';
 
-// Import our contract artifacts and turn them into usable abstractions.
-import metacoin_artifacts from '../../build/contracts/MetaCoin.json'
+// Utilities
+import './utilities.js';
 
-// MetaCoin is our usable abstraction, which we'll use through the code below.
-var MetaCoin = contract(metacoin_artifacts);
+// Local Modules
+// import endpoints from './modules/endpoints';
+// import dashboard from './modules/dashboard';
+// import workflow from './modules/workflow';
+// import interceptor from './modules/interceptor';
 
-// The following code is simple to show off interacting with your contracts.
-// As your needs grow you will likely need to change its form and structure.
-// For application bootstrapping, check out window.addEventListener below.
-var accounts;
-var account;
+// Load Components
+// import { navbar } from './components/navbar';
 
-window.App = {
-  start: function() {
-    var self = this;
+// Load services
+import Battleship from './services/battleship.service';
+// Load directives
+// import OnErrorDo from './directives/on-error-do.directive';
 
-    // Bootstrap the MetaCoin abstraction for Use.
-    MetaCoin.setProvider(web3.currentProvider);
+// Load Views
+// import { termsAndConditionsComponent, termsAndConditionsState } from './views/terms-and-conditions';
+// import { warrantyComponent, warrantyState } from './views/warranty';
+// import { corporateComponent, corporateState } from './views/corporate';
+// import { careersComponent, careersState } from './views/careers';
+// import { helloComponent, helloState } from './views/hello';
+// import { sorryComponent, sorryState } from './views/sorry';
+// import { teamComponent, teamState } from './views/team';
+import { homeComponent, homeState } from './views/home';
 
-    // Get the initial account balance so it can be displayed.
-    web3.eth.getAccounts(function(err, accs) {
-      if (err != null) {
-        alert("There was an error fetching your accounts.");
-        return;
-      }
+export default angular.module('app', [
+    angularUiRouter
+  ])
 
-      if (accs.length == 0) {
-        alert("Couldn't get any accounts! Make sure your Ethereum client is configured correctly.");
-        return;
-      }
+  .run(appInit)
 
-      accounts = accs;
-      account = accounts[0];
+  // .component('navbar',navbar)
 
-      self.refreshBalance();
-    });
-  },
+  .config(homeState).component('home',homeComponent)
 
-  setStatus: function(message) {
-    var status = document.getElementById("status");
-    status.innerHTML = message;
-  },
+  .service('Battleship',Battleship)
 
-  refreshBalance: function() {
-    var self = this;
-
-    var meta;
-    MetaCoin.deployed().then(function(instance) {
-      meta = instance;
-      return meta.getBalance.call(account, {from: account});
-    }).then(function(value) {
-      var balance_element = document.getElementById("balance");
-      balance_element.innerHTML = value.valueOf();
-    }).catch(function(e) {
-      console.log(e);
-      self.setStatus("Error getting balance; see log.");
-    });
-  },
-
-  sendCoin: function() {
-    var self = this;
-
-    var amount = parseInt(document.getElementById("amount").value);
-    var receiver = document.getElementById("receiver").value;
-
-    this.setStatus("Initiating transaction... (please wait)");
-
-    var meta;
-    MetaCoin.deployed().then(function(instance) {
-      meta = instance;
-      return meta.sendCoin(receiver, amount, {from: account});
-    }).then(function() {
-      self.setStatus("Transaction complete!");
-      self.refreshBalance();
-    }).catch(function(e) {
-      console.log(e);
-      self.setStatus("Error sending coin; see log.");
-    });
-  }
-};
-
-window.addEventListener('load', function() {
-  // Checking if Web3 has been injected by the browser (Mist/MetaMask)
-  if (typeof web3 !== 'undefined') {
-    console.warn("Using web3 detected from external source. If you find that your accounts don't appear or you have 0 MetaCoin, ensure you've configured that source properly. If using MetaMask, see the following link. Feel free to delete this warning. :) http://truffleframework.com/tutorials/truffle-and-metamask")
-    // Use Mist/MetaMask's provider
-    window.web3 = new Web3(web3.currentProvider);
-  } else {
-    console.warn("No web3 detected. Falling back to http://localhost:8545. You should remove this fallback when you deploy live, as it's inherently insecure. Consider switching to Metamask for development. More info here: http://truffleframework.com/tutorials/truffle-and-metamask");
-    // fallback - use your fallback strategy (local node / hosted node + in-dapp id mgmt / fail)
-    window.web3 = new Web3(new Web3.providers.HttpProvider("http://localhost:8545"));
-  }
-
-  App.start();
-});
+  // .directive('onErrorDo', OnErrorDo)
