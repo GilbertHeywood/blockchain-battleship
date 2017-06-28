@@ -15,9 +15,7 @@ var provider = new Web3.providers.HttpProvider("http://localhost:8545");
 Battleship.setProvider(provider);
 
 class BattleshipService {
-  constructor() {
-
-  }
+  
   async deployed() {
   	return await Battleship.deployed();
   }
