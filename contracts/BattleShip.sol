@@ -22,11 +22,13 @@ contract BattleShip {
     uint8 maxBoatLength;
     uint8 minBoatLength;
 
-    event GameInitialized(bytes32 gameId, address player1, bool player1GoesFirst);
+    event GameInitialized(bytes32 gameId, address player1, bool player1GoesFirst, uint pot);
+    event GameJoined(bytes32 gameId, address player2);
 
     event HitBattleShip(address currentPlayer, uint8 x, uint8 y, int8 pieceHit);
     event WonChallenged(address player);
     event GameEnded(address winner);
+    
     event WinningsWithdrawn(bytes32 gameId, address player);
     event WithdrawFailed(bytes32 gameId, address player, string reason);
 
@@ -74,6 +76,7 @@ contract BattleShip {
     }
 
     function newGame(bool goFirst) payable returns(bytes32){
+        require(msg.value > 0);
         // Generate game id based on player's addresses and current block number
         bytes32 gameId = sha3(msg.sender, block.number);
         playerGames[msg.sender].push(gameId);
@@ -89,7 +92,7 @@ contract BattleShip {
         if(goFirst){
             games[gameId].currentPlayer = msg.sender;
         }
-        GameInitialized(gameId,msg.sender,goFirst);
+        GameInitialized(gameId,msg.sender,goFirst,msg.value * 2);
         initialiseBoard(gameId,msg.sender);
         return gameId;
     }
@@ -103,6 +106,7 @@ contract BattleShip {
             games[gameId].currentPlayer = msg.sender;
         }
         initialiseBoard(gameId,msg.sender);
+        GameJoined(gameId,msg.sender);
         games[gameId].gameState = GameState.SettingUp;
     }
 

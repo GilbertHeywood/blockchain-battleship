@@ -26,6 +26,7 @@ contract('BattleShip', async (accounts) => {
     transactionData = await battleship.newGame(true,{from: accounts[0], value: 10})
     gameId = transactionData.logs[transactionData.logs.length - 1].args.gameId;
 
+
     let gameData = await battleship.games.call(gameId);
     assert.equal(gameData[0],accounts[0],'The player1 wasn\'t set correctly')
     assert.equal(gameData[1],'0x0000000000000000000000000000000000000000','Player2 was defined');

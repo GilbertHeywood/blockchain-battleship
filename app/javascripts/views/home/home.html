@@ -1,4 +1,54 @@
 <h1>Hi there</h1>
-<button ng-click="$ctrl.print()">
+<button ng-click="$ctrl.newGame()">
 	Press
 </button>
+
+<br>
+<h2>My Games</h2>
+<table class="table table-hover">
+	<tr>
+		<th>Game Id</th>
+	</tr>
+	<tr ng-repeat="game in $ctrl.battleship.games | filter: { player1: $ctrl.battleship.account }">
+		<td>
+			{{$index+1}}
+		</td>
+		<td>
+			{{game.id}}
+		</td>
+	</tr>
+</table>
+
+
+<h2>Games I've joined</h2>
+<table class="table table-hover">
+	<tr>
+		<th>Game Id</th>
+	</tr>
+	<tr ng-repeat="game in $ctrl.battleship.games | filter: { player2: $ctrl.battleship.account }">
+		<td>
+			{{$index+1}}
+		</td>
+		<td>
+			{{game.id}}
+		</td>
+	</tr>
+</table>
+
+<h2>Other games</h2>
+<table class="table table-hover">
+	<tr>
+		<th>Game Id</th>
+	</tr>
+	<tr ng-repeat="game in $ctrl.battleship.games | filter: { 
+		player1: '!'+$ctrl.battleship.account, 
+		player2: '!'+$ctrl.battleship.account 
+		}">
+		<td>
+			{{$index+1}}
+		</td>
+		<td>
+			<a href="" ng-click="$ctrl.joinGame(game)">{{game.id}}</a>
+		</td>
+	</tr>
+</table>

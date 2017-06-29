@@ -1,20 +1,29 @@
 class Home {
   constructor(Battleship){
     this.Battleship = Battleship;
-    console.log("Here");
-    console.log(this.Battleship);
+    this.battleship = Battleship.data;
   }
-  async print(){
-  	let battleship = await this.Battleship.deployed();
-  	console.log(battleship);
+  async newGame(){
+  	let value = prompt("How much are you putting into the pot?");
+  	try{
+  		value = parseInt(value);
+  		let result = await this.Battleship.transaction('newGame',[true],{value: value});
+  	}catch(e){
+  		alert("Please enter a number!")
+  	}
+  }
+  async joinGame(game){
+    let amountToBet = game.pot.toNumber() / 2;
+    let result = await this.Battleship.transaction('joinGame',[game.id],{value: amountToBet});
   }
 }
 
 Home.$inject = ['Battleship'];
 
 let templateUrl = require('ngtemplate-loader!html-loader!./home.html');
-console.log(templateUrl);
+
 export default {
   templateUrl: templateUrl,
-  controller: Home
+  controller: Home,
+  controllerAs: '$ctrl'
 }
