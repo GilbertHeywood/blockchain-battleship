@@ -50,3 +50,13 @@ h3 {
 .hint {
   color: #666;
 }
+
+.laying {
+  background: blue;
+  color: white;
+}
+
+.placed {
+  background: green;
+  color: white;
+}

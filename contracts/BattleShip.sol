@@ -24,6 +24,7 @@ contract BattleShip {
 
     event GameInitialized(bytes32 gameId, address player1, bool player1GoesFirst, uint pot);
     event GameJoined(bytes32 gameId, address player2);
+    event ShipPlaced(bytes32 gameId, address player, uint8 startX, uint8 endX, uint8 startY, uint8 endY);
 
     event HitBattleShip(address currentPlayer, uint8 x, uint8 y, int8 pieceHit);
     event WonChallenged(address player);
@@ -33,10 +34,12 @@ contract BattleShip {
     event WithdrawFailed(bytes32 gameId, address player, string reason);
 
     event IsStateCalled(GameState currentState, GameState comparingState, bool equal);
+    event IsPlayerCalled(address player);
     event LogCurrentState(GameState state);
 
 
     modifier isPlayer(bytes32 gameId) {
+        IsPlayerCalled(msg.sender);
         if(msg.sender == games[gameId].player1 || msg.sender == games[gameId].player2) _;
     }
 
@@ -45,6 +48,7 @@ contract BattleShip {
     }
 
     modifier isState(bytes32 gameId, GameState state){
+        IsStateCalled(state, games[gameId].gameState, state == games[gameId].gameState);
         if(state == games[gameId].gameState) _;
     }
 
@@ -116,38 +120,44 @@ contract BattleShip {
     }
     
     function placeShip(bytes32 gameId, uint8 startX, uint8 endX, uint8 startY, uint8 endY) isPlayer(gameId) isState(gameId,GameState.SettingUp) {
+        
         require(startX == endX || startY == endY);
         require(startX < endX || startY < endY);
         require(startX  < 10 && startX  >= 0 &&
                 endX    < 10 && endX    >= 0 &&
                 startY  < 10 && startY  >= 0 &&
                 endY    < 10 && endY    >= 0);
-        uint8 boatLength;
+        for(uint8 x = startX; x <= endX; x++) {
+            for(uint8 y = startY; y <= endY; y++) {
+                require(games[gameId].playerGrids[msg.sender][x][y] == 0);
+            }   
+        }
+        uint8 boatLength = 1;
         if(startX == endX) {
-            boatLength = uint8(abs(int(startY) - int(endY)));
+            boatLength += uint8(abs(int(startY) - int(endY)));
         }else if(startY == endY) {
-            boatLength = uint8(abs(int(startX) - int(endX)));
+            boatLength += uint8(abs(int(startX) - int(endX)));
         }
         require(boatLength <= maxBoatLength && boatLength >= minBoatLength);
         require(!(games[gameId].playerShips[msg.sender][boatLength - minBoatLength]));
 
         games[gameId].playerShips[msg.sender][boatLength - minBoatLength] = true;
 
-        uint8 placements = 0;
-        for(uint8 x = startX; x <= endX; x++) {
-            for(uint8 y = startY; y <= endY; y++) {
+        LogCurrentState(games[gameId].gameState);
+
+        for(x = startX; x <= endX; x++) {
+            for(y = startY; y <= endY; y++) {
                 games[gameId].playerGrids[msg.sender][x][y] = int8(boatLength);
-                placements += 1;
-                if(placements == boatLength) return;
             }   
         }
+
+        ShipPlaced(gameId, msg.sender, startX, endX, startY, endY);
     }
 
     function finishPlacing(bytes32 gameId) isPlayer(gameId) isState(gameId,GameState.SettingUp) {
         bool ready = true;
         for(uint8 i = 0; i <= maxBoatLength - minBoatLength; i++) {
-            if(!games[gameId].playerShips[games[gameId].player1][i] 
-                || !games[gameId].playerShips[games[gameId].player2][i]) {
+            if(!games[gameId].playerShips[games[gameId].player1][i] || !games[gameId].playerShips[games[gameId].player2][i]) {
                 ready = false;
                 break;
             }

@@ -1,0 +1,23 @@
+<h1>Game</h1>
+{{$ctrl.currentState}}
+
+
+<table>
+	<th></th>
+	<th ng-repeat="row in $ctrl.board track by $index">
+		{{$index+1}}
+	</th>
+	<tr ng-repeat="row in $ctrl.board track by $index">
+		<td>{{$index+1}}</td>
+		<td ng-repeat="ele in row track by $index">
+			<button 
+				ng-click="$ctrl.layPiece($index,$parent.$index)"
+				ng-class='{
+					"laying": $ctrl.laying.x == $index && $ctrl.laying.y == $parent.$index,
+					"placed": ele > 0
+				}'>
+				{{ele}}
+			</button>
+		</td>
+	</tr>
+</table>

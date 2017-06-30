@@ -37,32 +37,36 @@ class BattleshipService {
 			}
 
 			this.accounts = accs;
-			this.account = this.accounts[0];
-			angular.extend(this.data,{account: this.account});
+			angular.extend(this.data,{account: this.accounts[0]});
 			this.loaded.resolve();
 			this.setUpWatch();
 		});
+
+		this.states = ['Created', 'SettingUp', 'Playing', 'Finished'];
 	}
 	
-	async transaction(method,args=[],vars={}) {
-		await this.loaded;
+	async transaction(method,args=[],vars={value: 0}) {
+		await this.loaded.promise;
 		let instance = await Battleship.deployed();
-		angular.extend(vars,{from: this.account, gas: 2000000});
-		console.log(method, args, vars);
+		angular.extend(vars,{from: this.data.account, gas: 2000000});
+		console.log(method, ...args, vars);
 		return await instance[method](...args,vars);
 	}
 
-	async call(attribute) {
-		await this.loaded;
+	async call(attribute,args=[],vars={}) {
+		await this.loaded.promise;
 		let instance = await Battleship.deployed();
-		console.log(attribute);
-		return await instance[attribute].call();
+		angular.extend(vars,{from: this.data.account});
+		console.log(...args,vars);
+		let result = await instance[attribute].call(...args,vars);
+		if(attribute == 'games') result = this.structToObject(result);
+		return result;
 	}
 
 	async setUpWatch() {
-		await this.loaded;
-		
+		await this.loaded.promise;
 		let instance = await Battleship.deployed();
+
 		instance
 		.GameInitialized({},{fromBlock: 0, toBlock: 'pending'})
 		.watch(async (err, result) => {
@@ -71,6 +75,7 @@ class BattleshipService {
 			game.id = result.args.gameId;
 			this.$timeout(() => this.data.games.push(game));
 		});
+
 		instance
 		.GameJoined({},{fromBlock: 0, toBlock: 'pending'})
 		.watch(async (err, result) => {
@@ -79,6 +84,30 @@ class BattleshipService {
 			game.id = result.args.gameId;
 			this.data.games = this.data.games.filter((_game) => _game.id != game.id);
 			this.$timeout(() => this.data.games.push(game));
+		});
+
+		instance
+		.LogCurrentState({},{fromBlock: 0, toBlock: 'pending'})
+		.watch(async (err, result) => {
+			console.log(result);
+		});
+
+		instance
+		.IsStateCalled({},{fromBlock: 0, toBlock: 'pending'})
+		.watch(async (err, result) => {
+			console.log(result);
+		});
+
+		instance
+		.IsPlayerCalled({},{fromBlock: 0, toBlock: 'pending'})
+		.watch(async (err, result) => {
+			console.log(result);
+		});
+
+		instance
+		.ShipPlaced({},{fromBlock: 0, toBlock: 'pending'})
+		.watch(async (err, result) => {
+			console.log(result);
 		});
 	}
 

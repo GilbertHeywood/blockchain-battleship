@@ -19,6 +19,7 @@ import Battleship from './services/battleship.service';
 
 // Load Views
 import { homeComponent, homeState } from './views/home';
+import { gameComponent, gameState } from './views/game';
 
 export default angular.module('app', [
     angularUiRouter
@@ -28,5 +29,6 @@ export default angular.module('app', [
   .config(routing)
 
   .config(homeState).component('home',homeComponent)
+  .config(gameState).component('game',gameComponent)
 
   .service('Battleship',Battleship);

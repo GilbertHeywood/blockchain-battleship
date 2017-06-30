@@ -23,10 +23,8 @@ contract('BattleShip', async (accounts) => {
 
   it('should be able to create a new game', async () => {
     battleship = await BattleShip.deployed();
-    transactionData = await battleship.newGame(true,{from: accounts[0], value: 10})
-    gameId = transactionData.logs[transactionData.logs.length - 1].args.gameId;
-
-
+    transactionData = await battleship.newGame(true,{from: accounts[0], value: 10});
+    gameId = transactionData.logs[transactionData.logs.length - 2].args.gameId;
     let gameData = await battleship.games.call(gameId);
     assert.equal(gameData[0],accounts[0],'The player1 wasn\'t set correctly')
     assert.equal(gameData[1],'0x0000000000000000000000000000000000000000','Player2 was defined');
@@ -63,7 +61,7 @@ contract('BattleShip', async (accounts) => {
   });
 
   it('the players should be able to place their pieces', async () => {
-    await battleship.placeShip(gameId,0,2,0,0,{from: accounts[0]});
+    await battleship.placeShip(gameId,0,1,0,0,{from: accounts[0]});
     let board = await battleship.showBoard(gameId,{from: accounts[0]});
     let boardNumbers = board.map((row) => {
       return row.map((col) => col.toNumber());
@@ -74,13 +72,13 @@ contract('BattleShip', async (accounts) => {
   });
 
   it('the players should be able start game onces all pieces put down', async () => {
-    await battleship.placeShip(gameId, 0, 3, 1, 1, {from: accounts[0]});
-    await battleship.placeShip(gameId, 0, 4, 2, 2, {from: accounts[0]});
-    await battleship.placeShip(gameId, 0, 5, 3, 3, {from: accounts[0]});
-    await battleship.placeShip(gameId, 0, 2, 0, 0, {from: accounts[1]});
-    await battleship.placeShip(gameId, 0, 3, 1, 1, {from: accounts[1]});
-    await battleship.placeShip(gameId, 0, 4, 2, 2, {from: accounts[1]});
-    await battleship.placeShip(gameId, 0, 5, 3, 3, {from: accounts[1]});
+    await battleship.placeShip(gameId, 0, 2, 1, 1, {from: accounts[0]});
+    await battleship.placeShip(gameId, 0, 3, 2, 2, {from: accounts[0]});
+    await battleship.placeShip(gameId, 0, 4, 3, 3, {from: accounts[0]});
+    await battleship.placeShip(gameId, 0, 1, 0, 0, {from: accounts[1]});
+    await battleship.placeShip(gameId, 0, 2, 1, 1, {from: accounts[1]});
+    await battleship.placeShip(gameId, 0, 3, 2, 2, {from: accounts[1]});
+    await battleship.placeShip(gameId, 0, 4, 3, 3, {from: accounts[1]});
 
     let board1 = await battleship.showBoard(gameId,{from: accounts[0]});
     let board1Numbers = board1.map((row) => {
@@ -91,7 +89,6 @@ contract('BattleShip', async (accounts) => {
     let board2Numbers = board2.map((row) => {
       return row.map((col) => col.toNumber());
     });
-
     
     await battleship.finishPlacing(gameId);
 
@@ -182,13 +179,16 @@ contract('BattleShip', async (accounts) => {
     await battleship.makeMove(gameId, 0, 3, {from: accounts[1]});
     await battleship.makeMove(gameId, 4, 3, {from: accounts[0]});
 
+    let board1 = await battleship.showBoard(gameId, {from: accounts[0]});
+    let board2 = await battleship.showBoard(gameId, {from: accounts[1]});
+    
+    console.log(printBoard(board2));
+
     transactionData = await battleship.sayWon(gameId, {from: accounts[0]});
 
     let numLogs = transactionData.logs.length;
 
-    let board1 = await battleship.showBoard(gameId, {from: accounts[0]});
-    let board2 = await battleship.showBoard(gameId, {from: accounts[1]});
- 
+
     assert.equal(transactionData.logs[numLogs-1].event, 'GameEnded', 'The event had the wrong name');
     assert.equal(transactionData.logs[numLogs-1].args.winner, accounts[0], 'The wrong player was assigned to event');
   });
