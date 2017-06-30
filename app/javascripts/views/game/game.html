@@ -1,7 +1,6 @@
 <h1>Game</h1>
 {{$ctrl.currentState}}
 
-
 <table>
 	<th></th>
 	<th ng-repeat="row in $ctrl.board track by $index">
@@ -14,7 +13,34 @@
 				ng-click="$ctrl.layPiece($index,$parent.$index)"
 				ng-class='{
 					"laying": $ctrl.laying.x == $index && $ctrl.laying.y == $parent.$index,
-					"placed": ele > 0
+					"placed": ele > 0,
+					"hit": ele < 0
+				}'>
+				{{ele}}
+			</button>
+		</td>
+	</tr>
+</table>
+
+<button 
+	class="btn btn-success"
+	ng-click="$ctrl.startGame()">
+	Start game
+</button>
+
+<table>
+	<th></th>
+	<th ng-repeat="row in $ctrl.otherBoard track by $index">
+		{{$index+1}}
+	</th>
+	<tr ng-repeat="row in $ctrl.otherBoard track by $index">
+		<td>{{$index+1}}</td>
+		<td ng-repeat="ele in row track by $index">
+			<button 
+				ng-click="$ctrl.makeMove($index,$parent.$index)"
+				ng-class='{
+					"hit": ele < 0,
+					"missed": ele > 0
 				}'>
 				{{ele}}
 			</button>

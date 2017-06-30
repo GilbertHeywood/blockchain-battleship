@@ -60,3 +60,13 @@ h3 {
   background: green;
   color: white;
 }
+
+.hit {
+  background: black;
+  color: white;
+}
+
+.missed {
+  background: red;
+  color: white;
+}

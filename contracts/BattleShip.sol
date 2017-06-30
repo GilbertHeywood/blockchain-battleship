@@ -22,10 +22,15 @@ contract BattleShip {
     uint8 maxBoatLength;
     uint8 minBoatLength;
 
+
+    // otherPlayerBoard
+    int8[10][10] otherPlayerBoard;
+
     event GameInitialized(bytes32 gameId, address player1, bool player1GoesFirst, uint pot);
     event GameJoined(bytes32 gameId, address player2);
     event ShipPlaced(bytes32 gameId, address player, uint8 startX, uint8 endX, uint8 startY, uint8 endY);
 
+    event MadeMove(address currentPlayer, uint8 x, uint8 y);
     event HitBattleShip(address currentPlayer, uint8 x, uint8 y, int8 pieceHit);
     event WonChallenged(address player);
     event GameEnded(address winner);
@@ -114,9 +119,23 @@ contract BattleShip {
         games[gameId].gameState = GameState.SettingUp;
     }
 
-
     function showBoard(bytes32 gameId) isPlayer(gameId) constant returns(int8[10][10] board) {
         return games[gameId].playerGrids[msg.sender];
+    }
+
+    function showOtherPlayerBoard(bytes32 gameId) isPlayer(gameId) isState(gameId,GameState.Playing) constant returns(int8[10][10]){
+        address otherPlayer = findOtherPlayer(gameId,msg.sender);
+        int8[10][10] otherGrid = games[gameId].playerGrids[otherPlayer];
+        for(uint8 i = 0; i < 10; i++) {
+            for(uint j = 0; j < 10; j++) {
+                if(otherGrid[i][j] > 0 && otherGrid[i][j] < int(maxBoatLength + 1)){
+                    otherPlayerBoard[i][j] = 0;
+                }else{
+                    otherPlayerBoard[i][j] = otherGrid[i][j];
+                }
+            }
+        }
+        return otherPlayerBoard;
     }
     
     function placeShip(bytes32 gameId, uint8 startX, uint8 endX, uint8 startY, uint8 endY) isPlayer(gameId) isState(gameId,GameState.SettingUp) {
@@ -169,11 +188,14 @@ contract BattleShip {
     function makeMove(bytes32 gameId, uint8 x, uint8 y) isState(gameId,GameState.Playing) isCurrentPlayer(gameId) {
         address otherPlayer = findOtherPlayer(gameId,msg.sender);
         require(games[gameId].playerGrids[otherPlayer][x][y] >= 0);
-        if(games[gameId].playerGrids[otherPlayer][x][y] > 0) {
+        if(games[gameId].playerGrids[otherPlayer][x][y] > 0 && games[gameId].playerGrids[otherPlayer][x][y] < int(maxBoatLength + 1)) {
             HitBattleShip(msg.sender,x,y,games[gameId].playerGrids[otherPlayer][x][y]);
             games[gameId].playerGrids[otherPlayer][x][y] = -1 * games[gameId].playerGrids[otherPlayer][x][y];
+        }else{
+            games[gameId].playerGrids[otherPlayer][x][y] = int8(maxBoatLength + 1);
         }
         games[gameId].currentPlayer = otherPlayer;
+        MadeMove(msg.sender,x,y);
     }
 
     function sayWon(bytes32 gameId) isPlayer(gameId) isState(gameId,GameState.Playing) {

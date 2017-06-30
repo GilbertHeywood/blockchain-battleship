@@ -158,6 +158,8 @@ contract('BattleShip', async (accounts) => {
     await battleship.makeMove(gameId, 0, 1, {from: accounts[0]});
     await battleship.makeMove(gameId, 2, 0, {from: accounts[1]});
     await battleship.makeMove(gameId, 1, 1, {from: accounts[0]});
+    await battleship.makeMove(gameId, 9, 0, {from: accounts[1]});
+    await battleship.makeMove(gameId, 8, 8, {from: accounts[0]});
     await battleship.makeMove(gameId, 3, 0, {from: accounts[1]});
     await battleship.makeMove(gameId, 2, 1, {from: accounts[0]});
     await battleship.makeMove(gameId, 4, 0, {from: accounts[1]});
@@ -181,8 +183,8 @@ contract('BattleShip', async (accounts) => {
 
     let board1 = await battleship.showBoard(gameId, {from: accounts[0]});
     let board2 = await battleship.showBoard(gameId, {from: accounts[1]});
-    
-    console.log(printBoard(board2));
+
+    let board1from2 = await battleship.showOtherPlayerBoard(gameId, {from: accounts[1]});
 
     transactionData = await battleship.sayWon(gameId, {from: accounts[0]});
 

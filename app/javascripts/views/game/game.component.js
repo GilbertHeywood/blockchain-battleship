@@ -6,8 +6,13 @@ class Game {
     this.gameId = this.$state.params.id;
     this.getGameData();
     this.getBoard();
+    this.getOtherBoard();
     this.laying = {};
-    console.log(this);
+
+    this.Battleship.watch('MadeMove',async (err, result) => {
+      this.getOtherBoard();
+    })
+
   }
   get currentState(){
     if(this.data)
@@ -25,12 +30,31 @@ class Game {
     });
     this.$timeout(() => this.board = boardTranspose);
   }
+  async getOtherBoard(){
+    let board = await this.Battleship.call('showOtherPlayerBoard',[this.gameId]);
+    board = board.map((row) => row.map((ele) => ele.toNumber()));
+    var boardTranspose = board[0].map((col, i) => {
+      return board.map((row) => row[i])
+    });
+    this.$timeout(() => this.otherBoard = boardTranspose);
+  }
+  async startGame(){
+    await this.Battleship.transaction('finishPlacing',[this.gameId]);
+    await this.getGameData();
+  }
+  async makeMove(x,y){
+    await this.Battleship.transaction('makeMove',[this.gameId,x,y]);
+  }
   async layPiece(x,y){
     if(this.board[y][x] > 0) return;
     if(this.placing) return;
     this.placing = true;
     try{
-      if(this.placed){
+      if(this.laying.x == x && this.laying.y == y){
+        this.laying.x = null;
+        this.laying.y = null;
+        this.placed = false;
+      }else if(this.placed){
         let startX = Math.min(this.laying.x,x);
         let startY = Math.min(this.laying.y,y);
         let endX = Math.max(this.laying.x,x);
