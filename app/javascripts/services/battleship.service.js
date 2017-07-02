@@ -92,30 +92,6 @@ class BattleshipService {
 			this.data.games = this.data.games.filter((_game) => _game.id != game.id);
 			this.$timeout(() => this.data.games.push(game));
 		});
-
-		// instance
-		// .LogCurrentState({},{fromBlock: 0, toBlock: 'pending'})
-		// .watch(async (err, result) => {
-		// 	console.log(result);
-		// });
-
-		// instance
-		// .IsStateCalled({},{fromBlock: 0, toBlock: 'pending'})
-		// .watch(async (err, result) => {
-		// 	console.log(result);
-		// });
-
-		// instance
-		// .IsPlayerCalled({},{fromBlock: 0, toBlock: 'pending'})
-		// .watch(async (err, result) => {
-		// 	console.log(result);
-		// });
-
-		// instance
-		// .ShipPlaced({},{fromBlock: 0, toBlock: 'pending'})
-		// .watch(async (err, result) => {
-		// 	console.log(result);
-		// });
 	}
 
 	structToObject(game){

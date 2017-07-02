@@ -123,10 +123,10 @@ contract('BattleShip', async (accounts) => {
     });
     assert.equal(board2Numbers[0][0],-2,'Should have been able to make that move');
     let numLogs = transactionData.logs.length;
-    assert.equal(transactionData.logs[numLogs-1].event,'HitBattleShip','The event had the wrong name');
-    assert.equal(transactionData.logs[numLogs-1].args.pieceHit.toNumber(),2,'The piecewas the wrong one');
-    assert.equal(transactionData.logs[numLogs-1].args.x.toNumber(),0,'The x had the wrong value');
-    assert.equal(transactionData.logs[numLogs-1].args.y.toNumber(),0,'The y had the wrong value');
+    assert.equal(transactionData.logs[numLogs-2].event,'HitBattleShip','The event had the wrong name');
+    assert.equal(transactionData.logs[numLogs-2].args.pieceHit.toNumber(),2,'The piecewas the wrong one');
+    assert.equal(transactionData.logs[numLogs-2].args.x.toNumber(),0,'The x had the wrong value');
+    assert.equal(transactionData.logs[numLogs-2].args.y.toNumber(),0,'The y had the wrong value');
   });
 
   it('the player should be able to say they won at any time', async () => {
