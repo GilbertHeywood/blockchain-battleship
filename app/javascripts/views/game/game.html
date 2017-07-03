@@ -6,7 +6,7 @@
 			<p ng-show="$ctrl.loaded">
 				State: {{$ctrl.currentState}}
 			</p>
-			<p ng-show="$ctrl.loaded">
+			<p ng-show="$ctrl.loaded && $ctrl.data.gameState.toNumber() >= 2">
 				Turn: {{$ctrl.Battleship.data.account == $ctrl.data.currentPlayer ? "Mine" : "Other player"}}
 			</p>
 		</div>

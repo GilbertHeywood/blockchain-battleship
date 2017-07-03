@@ -20,6 +20,18 @@ class Home {
   async playGame(game){
     this.$state.go('game',{id: game.id});
   }
+
+  get myGames(){
+    return this.Battleship.data.games.filter((e) => e.player1 == this.Battleship.data.account);
+  }
+
+  get joinedGames(){
+    return this.Battleship.data.games.filter((e) => e.player2 == this.Battleship.data.account);
+  }
+
+  get otherGames(){
+    return this.Battleship.data.games.filter((e) => e.player1 != this.Battleship.data.account && e.player2 != this.Battleship.data.account);
+  }
 }
 
 Home.$inject = ['Battleship','$state'];

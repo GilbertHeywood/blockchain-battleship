@@ -8,6 +8,7 @@ class Game {
     this.setup();
     this.Battleship.watch('MadeMove', async (err, result) => {
       await [this.getGameData(),this.getBoard(),this.getOtherBoard()];
+      alert("Move has been placed");
     });
     this.Battleship.watch('StateChanged', async (err, result) => {
       await this.getGameData();
@@ -86,8 +87,8 @@ class Game {
     if(!this.moving){
       this.moving = true;
       try{
-        await this.Battleship.transaction('makeMove',[this.gameId,x,y]);
-        alert("Move has beed placed");
+        let tx = await this.Battleship.transaction('makeMove',[this.gameId,x,y]);
+        console.log(tx);
       }catch(e){
         alert("Move has not been placed");
       }
@@ -120,6 +121,8 @@ class Game {
       }
     }catch(e){
       console.log(e);
+      let length = 1 + Math.max(Math.abs(this.laying.x - x),Math.abs(this.laying.y - y));
+      alert(`Have you already laid a length ${length} boat?`);
     }
     this.placing = false;
   }
