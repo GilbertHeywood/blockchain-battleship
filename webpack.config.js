@@ -22,6 +22,7 @@ module.exports = {
     ],
     loaders: [
       { test: /\.json$/, use: 'json-loader' },
+      { test: /\.html$/, loader: "html-loader" },
       {
         test: /\.js$/,
         exclude: /(node_modules|bower_components)/,

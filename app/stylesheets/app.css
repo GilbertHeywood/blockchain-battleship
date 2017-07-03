@@ -1,6 +1,4 @@
 body {
-  margin-left: 25%;
-  margin-right: 25%;
   margin-top: 10%;
   font-family: "Open Sans", sans-serif;
 }
@@ -49,4 +47,24 @@ h3 {
 
 .hint {
   color: #666;
+}
+
+.laying {
+  background: blue;
+  color: white;
+}
+
+.placed {
+  background: black;
+  color: white;
+}
+
+.hit {
+  background: red;
+  color: white;
+}
+
+.missed {
+  background: green;
+  color: white;
 }

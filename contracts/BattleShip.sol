@@ -19,22 +19,33 @@ contract BattleShip {
     mapping(bytes32 => Game) public games;
     mapping(address => bytes32[]) playerGames;
 
-    uint8 maxBoatLength;
-    uint8 minBoatLength;
+    uint8 public maxBoatLength;
+    uint8 public minBoatLength;
 
-    event GameInitialized(bytes32 gameId, address player1, bool player1GoesFirst);
 
-    event HitBattleShip(address currentPlayer, uint8 x, uint8 y, int8 pieceHit);
-    event WonChallenged(address player);
-    event GameEnded(address winner);
+    // otherPlayerBoard
+    int8[10][10] otherPlayerBoard;
+
+    event GameInitialized(bytes32 gameId, address player1, bool player1GoesFirst, uint pot);
+    event GameJoined(bytes32 gameId, address player2);
+    event ShipPlaced(bytes32 gameId, address player, uint8 startX, uint8 endX, uint8 startY, uint8 endY);
+    event StateChanged(bytes32 gameId, GameState newState, string newStateString);
+
+    event MadeMove(bytes32 gameId, address currentPlayer, uint8 x, uint8 y);
+    event HitBattleShip(bytes32 gameId, address currentPlayer, uint8 x, uint8 y, int8 pieceHit);
+    event WonChallenged(bytes32 gameId, address player);
+    event GameEnded(bytes32 gameId, address winner);
+    
     event WinningsWithdrawn(bytes32 gameId, address player);
     event WithdrawFailed(bytes32 gameId, address player, string reason);
 
-    event IsStateCalled(GameState currentState, GameState comparingState, bool equal);
-    event LogCurrentState(GameState state);
+    event IsStateCalled(bytes32 gameId, GameState currentState, GameState comparingState, bool equal);
+    event IsPlayerCalled(bytes32 gameId, address player);
+    event LogCurrentState(bytes32 gameId, GameState state);
 
 
     modifier isPlayer(bytes32 gameId) {
+        IsPlayerCalled(gameId,msg.sender);
         if(msg.sender == games[gameId].player1 || msg.sender == games[gameId].player2) _;
     }
 
@@ -43,6 +54,7 @@ contract BattleShip {
     }
 
     modifier isState(bytes32 gameId, GameState state){
+        IsStateCalled(gameId,state, games[gameId].gameState, state == games[gameId].gameState);
         if(state == games[gameId].gameState) _;
     }
 
@@ -74,6 +86,7 @@ contract BattleShip {
     }
 
     function newGame(bool goFirst) payable returns(bytes32){
+        require(msg.value > 0);
         // Generate game id based on player's addresses and current block number
         bytes32 gameId = sha3(msg.sender, block.number);
         playerGames[msg.sender].push(gameId);
@@ -89,7 +102,7 @@ contract BattleShip {
         if(goFirst){
             games[gameId].currentPlayer = msg.sender;
         }
-        GameInitialized(gameId,msg.sender,goFirst);
+        GameInitialized(gameId,msg.sender,goFirst,msg.value * 2);
         initialiseBoard(gameId,msg.sender);
         return gameId;
     }
@@ -103,67 +116,95 @@ contract BattleShip {
             games[gameId].currentPlayer = msg.sender;
         }
         initialiseBoard(gameId,msg.sender);
+        GameJoined(gameId,msg.sender);
         games[gameId].gameState = GameState.SettingUp;
+        StateChanged(gameId,GameState.SettingUp,"SettingUp");
     }
-
 
     function showBoard(bytes32 gameId) isPlayer(gameId) constant returns(int8[10][10] board) {
         return games[gameId].playerGrids[msg.sender];
     }
+
+    function showOtherPlayerBoard(bytes32 gameId) isPlayer(gameId) constant returns(int8[10][10]){
+        require(games[gameId].gameState == GameState.Playing 
+            || games[gameId].gameState == GameState.Finished);
+        address otherPlayer = findOtherPlayer(gameId,msg.sender);
+        int8[10][10] otherGrid = games[gameId].playerGrids[otherPlayer];
+        for(uint8 i = 0; i < 10; i++) {
+            for(uint j = 0; j < 10; j++) {
+                if(otherGrid[i][j] > 0 && otherGrid[i][j] < int(maxBoatLength + 1)){
+                    otherPlayerBoard[i][j] = 0;
+                }else{
+                    otherPlayerBoard[i][j] = otherGrid[i][j];
+                }
+            }
+        }
+        return otherPlayerBoard;
+    }
     
     function placeShip(bytes32 gameId, uint8 startX, uint8 endX, uint8 startY, uint8 endY) isPlayer(gameId) isState(gameId,GameState.SettingUp) {
+        
         require(startX == endX || startY == endY);
         require(startX < endX || startY < endY);
         require(startX  < 10 && startX  >= 0 &&
                 endX    < 10 && endX    >= 0 &&
                 startY  < 10 && startY  >= 0 &&
                 endY    < 10 && endY    >= 0);
-        uint8 boatLength;
+        for(uint8 x = startX; x <= endX; x++) {
+            for(uint8 y = startY; y <= endY; y++) {
+                require(games[gameId].playerGrids[msg.sender][x][y] == 0);
+            }   
+        }
+        uint8 boatLength = 1;
         if(startX == endX) {
-            boatLength = uint8(abs(int(startY) - int(endY)));
+            boatLength += uint8(abs(int(startY) - int(endY)));
         }else if(startY == endY) {
-            boatLength = uint8(abs(int(startX) - int(endX)));
+            boatLength += uint8(abs(int(startX) - int(endX)));
         }
         require(boatLength <= maxBoatLength && boatLength >= minBoatLength);
         require(!(games[gameId].playerShips[msg.sender][boatLength - minBoatLength]));
 
         games[gameId].playerShips[msg.sender][boatLength - minBoatLength] = true;
 
-        uint8 placements = 0;
-        for(uint8 x = startX; x <= endX; x++) {
-            for(uint8 y = startY; y <= endY; y++) {
+        LogCurrentState(gameId,games[gameId].gameState);
+
+        for(x = startX; x <= endX; x++) {
+            for(y = startY; y <= endY; y++) {
                 games[gameId].playerGrids[msg.sender][x][y] = int8(boatLength);
-                placements += 1;
-                if(placements == boatLength) return;
             }   
         }
+
+        ShipPlaced(gameId, msg.sender, startX, endX, startY, endY);
     }
 
     function finishPlacing(bytes32 gameId) isPlayer(gameId) isState(gameId,GameState.SettingUp) {
         bool ready = true;
         for(uint8 i = 0; i <= maxBoatLength - minBoatLength; i++) {
-            if(!games[gameId].playerShips[games[gameId].player1][i] 
-                || !games[gameId].playerShips[games[gameId].player2][i]) {
+            if(!games[gameId].playerShips[games[gameId].player1][i] || !games[gameId].playerShips[games[gameId].player2][i]) {
                 ready = false;
                 break;
             }
         }
         require(ready);
         games[gameId].gameState = GameState.Playing;
+        StateChanged(gameId,GameState.Playing,"Playing");
     }
 
     function makeMove(bytes32 gameId, uint8 x, uint8 y) isState(gameId,GameState.Playing) isCurrentPlayer(gameId) {
         address otherPlayer = findOtherPlayer(gameId,msg.sender);
         require(games[gameId].playerGrids[otherPlayer][x][y] >= 0);
-        if(games[gameId].playerGrids[otherPlayer][x][y] > 0) {
-            HitBattleShip(msg.sender,x,y,games[gameId].playerGrids[otherPlayer][x][y]);
+        if(games[gameId].playerGrids[otherPlayer][x][y] > 0 && games[gameId].playerGrids[otherPlayer][x][y] < int(maxBoatLength + 1)) {
+            HitBattleShip(gameId,msg.sender,x,y,games[gameId].playerGrids[otherPlayer][x][y]);
             games[gameId].playerGrids[otherPlayer][x][y] = -1 * games[gameId].playerGrids[otherPlayer][x][y];
+        }else{
+            games[gameId].playerGrids[otherPlayer][x][y] = int8(maxBoatLength + 1);
         }
         games[gameId].currentPlayer = otherPlayer;
+        MadeMove(gameId,msg.sender,x,y);
     }
 
     function sayWon(bytes32 gameId) isPlayer(gameId) isState(gameId,GameState.Playing) {
-        WonChallenged(msg.sender);
+        WonChallenged(gameId,msg.sender);
         address otherPlayer = findOtherPlayer(gameId,msg.sender);
         uint8 requiredToWin = 0;
         for(uint8 i = minBoatLength; i <= maxBoatLength; i++){
@@ -180,8 +221,9 @@ contract BattleShip {
         }
         if(numberHit >= requiredToWin){
             games[gameId].gameState = GameState.Finished;
+            StateChanged(gameId,GameState.Finished,"Finished");
             games[gameId].winner = msg.sender;
-            GameEnded(msg.sender);
+            GameEnded(gameId,msg.sender);
         }
     }
 
