@@ -17,6 +17,13 @@
 		</div>
 		<div  class="col-md-6" ng-show="$ctrl.data.gameState.toNumber() == 3">
 			<h2>Winner: {{$ctrl.Battleship.data.account == $ctrl.data.winner ? "You!" : "Not you..."}}</h2>
+			<button 
+				class="btn btn-primary"
+				ng-click="$ctrl.withdrawWinnings()"
+				ng-disabled="$ctrl.withdrawing"
+				ng-show="$ctrl.Battleship.data.account == $ctrl.data.winner && $ctrl.data.availablePot.toNumber()">
+				Withdraw winnings
+			</button>
 		</div>
 	</div>
 	<div class="row">

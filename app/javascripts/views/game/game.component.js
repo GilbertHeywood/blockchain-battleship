@@ -34,6 +34,9 @@ class Game {
         alert(`You're the loser :D`);
       }
     });
+    this.Battleship.watch('WinningsWithdrawn', async (err, result) => {
+      if(this.loaded) await this.getGameData();
+    });
   }
   async setup(){
     await this.getGameData();
@@ -63,9 +66,9 @@ class Game {
   }
   async getGameData(){
     let data = await this.Battleship.call('games',[this.gameId]);
+    console.log(data);
     if(data.player1 == "0x0000000000000000000000000000000000000000")
       this.$state.go("home");
-    console.log(data.currentPlayer == this.Battleship.data.account);
     this.$timeout(() => this.data = data);
   }
   async getBattleshipDimensions(){
@@ -123,6 +126,12 @@ class Game {
   }
   async winTheGame(){
     let tx = await this.Battleship.transaction('sayWon',[this.gameId]);
+  }
+  async withdrawWinnings(){
+    if(!this.withdrawing){
+      this.withdrawing = true;
+      let tx = await this.Battleship.transaction('withdraw',[this.gameId]);
+    }
   }
   async makeMove(x,y){
     if(this.Battleship.data.account != this.data.currentPlayer){
