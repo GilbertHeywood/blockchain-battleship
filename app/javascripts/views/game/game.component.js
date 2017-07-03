@@ -7,14 +7,32 @@ class Game {
     this.laying = {};
     this.setup();
     this.Battleship.watch('MadeMove', async (err, result) => {
-      await [this.getGameData(),this.getBoard(),this.getOtherBoard()];
-      alert("Move has been placed");
+      if(this.loaded){
+        if(result.args.currentPlayer == this.Battleship.data.account){
+          await [this.getGameData(),this.getBoard(),this.getOtherBoard()];
+        }else{
+          await [this.getGameData(),this.getBoard(),this.getOtherBoard(),alert("Move has been placed")];
+        }
+      }
     });
     this.Battleship.watch('StateChanged', async (err, result) => {
-      await this.getGameData();
+      if(this.loaded) await this.getGameData();
     });
     this.Battleship.watch('HitBattleShip', async (err, result) => {
-      console.log(result);
+      if(this.loaded){
+        if(result.args.currentPlayer == this.Battleship.data.account){
+          alert(`You got a hit! You hit Battleship with length ${result.args.pieceHit.toNumber()}`);
+        }else{
+          alert(`Your ship got hit at x:${result.args.x},y:${result.args.y}!`);
+        }
+      }
+    });
+    this.Battleship.watch('GameEnded', async (err, result) => {
+      if(result.args.winner == this.Battleship.data.account){
+        alert(`You're the winner :D`);
+      }else{
+        alert(`You're the loser :D`);
+      }
     });
   }
   async setup(){
@@ -38,8 +56,10 @@ class Game {
     return ships.length;
   }
   get currentState(){
-    if(this.data)
+    if(this.data){
+      console.log(this.data.gameState.toNumber());
       return this.Battleship.states[this.data.gameState.toNumber()];
+    }
   }
   async getGameData(){
     let data = await this.Battleship.call('games',[this.gameId]);
@@ -69,7 +89,11 @@ class Game {
     var boardTranspose = board[0].map((col, i) => {
       return board.map((row) => row[i])
     });
-    this.$timeout(() => this.otherBoard = boardTranspose);
+    this.$timeout(() => {
+      this.otherBoard = boardTranspose;
+      this.canWin = this.ableToWin();
+      if(this.canWin) alert("You can win! Press the win button to tell the world!");
+    });
   }
   async startGame(){
     try{
@@ -78,6 +102,27 @@ class Game {
     }catch(e){
       alert("Other player is still setting up their board");
     }
+  }
+  ableToWin(){
+    if(this.maxBoatLength && this.minBoatLength && this.otherBoard){
+      let requiredToWin = 0;
+      let nextSum = this.minBoatLength;
+      while(nextSum <= this.maxBoatLength){
+        requiredToWin += nextSum;
+        nextSum += 1;
+      }
+      let numberHit = this.otherBoard.reduce((c1, row) => {
+        return row.reduce((c2,ele) => {
+          if(ele < 0) c2 += 1;
+          return c2;
+        },c1);
+      },0);
+      return numberHit >= requiredToWin;
+    };
+    return false;
+  }
+  async winTheGame(){
+    let tx = await this.Battleship.transaction('sayWon',[this.gameId]);
   }
   async makeMove(x,y){
     if(this.Battleship.data.account != this.data.currentPlayer){

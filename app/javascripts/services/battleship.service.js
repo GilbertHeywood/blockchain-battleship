@@ -66,7 +66,7 @@ class BattleshipService {
 	async watch(Name,cb) {
 		await this.loaded.promise;
 		let instance = await Battleship.deployed();
-		instance[Name]({},{fromBlock: 0, toBlock: 'pending'})
+		instance[Name]({},{toBlock: 'pending'})
 		.watch(cb);
 	}
 

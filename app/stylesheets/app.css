@@ -55,16 +55,16 @@ h3 {
 }
 
 .placed {
-  background: green;
-  color: white;
-}
-
-.hit {
   background: black;
   color: white;
 }
 
-.missed {
+.hit {
   background: red;
+  color: white;
+}
+
+.missed {
+  background: green;
   color: white;
 }

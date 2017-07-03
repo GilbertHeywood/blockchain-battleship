@@ -125,7 +125,9 @@ contract BattleShip {
         return games[gameId].playerGrids[msg.sender];
     }
 
-    function showOtherPlayerBoard(bytes32 gameId) isPlayer(gameId) isState(gameId,GameState.Playing) constant returns(int8[10][10]){
+    function showOtherPlayerBoard(bytes32 gameId) isPlayer(gameId) constant returns(int8[10][10]){
+        require(games[gameId].gameState == GameState.Playing 
+            || games[gameId].gameState == GameState.Finished);
         address otherPlayer = findOtherPlayer(gameId,msg.sender);
         int8[10][10] otherGrid = games[gameId].playerGrids[otherPlayer];
         for(uint8 i = 0; i < 10; i++) {
