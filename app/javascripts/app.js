@@ -3,7 +3,7 @@ import "../stylesheets/app.css";
 
 // Angular dependencies
 import angular from 'angular';
-import angularUiRouter from 'angular-ui-router';
+import angularUiRouter from '@uirouter/angularjs';
 // Load config
 // import './app.scss';
 import {
