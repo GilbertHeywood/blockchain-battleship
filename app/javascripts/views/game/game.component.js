@@ -47,7 +47,7 @@ class Game {
     });
   }
   get myTurn(){
-    return this.Battleship.data.account == this.data.currentPlayer;
+    return this.data && (this.Battleship.data.account == this.data.currentPlayer);
   }
   async setup(){
     await this.getGameData();

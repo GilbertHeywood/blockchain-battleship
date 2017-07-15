@@ -21,14 +21,23 @@ contract('BattleShip', async (accounts) => {
 
   let battleship, transactionData, gameId;
 
-  it('should be able to create a new game', async () => {
+  it("should be able to set the players names", async () => {
     battleship = await BattleShip.deployed();
+    transactionData = await battleship.setName("Tom",{from: accounts[0]});
+    transactionData = await battleship.setName("Kevin",{from: accounts[1]});
+    let name1 = await battleship.playerNames.call(accounts[0]);
+    assert.equal(name1,"Tom",'The player1 name wasn\'t set correctly');
+    let name2 = await battleship.playerNames.call(accounts[1]);
+    assert.equal(name2,"Kevin",'The player2 name wasn\'t set correctly');
+  });
+
+  it('should be able to create a new game', async () => {
     transactionData = await battleship.newGame(true,{from: accounts[0], value: 10});
     gameId = transactionData.logs[transactionData.logs.length - 2].args.gameId;
     let gameData = await battleship.games.call(gameId);
     assert.equal(gameData[0],accounts[0],'The player1 wasn\'t set correctly')
     assert.equal(gameData[1],'0x0000000000000000000000000000000000000000','Player2 was defined');
-    assert.equal(gameData[4],0,'The game is not in the correct state');
+    assert.equal(gameData[6],0,'The game is not in the correct state');
   });
 
   it('the players shouldn\'t be able to join game if value is wrong', async () => {
@@ -47,7 +56,7 @@ contract('BattleShip', async (accounts) => {
     let gameData = await battleship.games.call(gameId);
     assert.equal(gameData[0],accounts[0],'The player1 wasn\'t set correctly')
     assert.equal(gameData[1],accounts[1],'The player2 wasn\'t set correctly');
-    assert.equal(gameData[4],1,'The game is not in the correct state');
+    assert.equal(gameData[6],1,'The game is not in the correct state');
   });
 
   it('the players should be able to see their board', async () => {
@@ -93,7 +102,7 @@ contract('BattleShip', async (accounts) => {
     await battleship.finishPlacing(gameId);
 
     let gameData = await battleship.games.call(gameId);
-    assert.equal(gameData[4],2,'Game not able to start even though pieces are down');
+    assert.equal(gameData[6],2,'Game not able to start even though pieces are down');
 
   });
 

@@ -77,6 +77,13 @@ class BattleshipService {
 		let instance = await Battleship.deployed();
 
 		instance
+		.PlayerSetName({},{fromBlock: 0, toBlock: 'pending'})
+		.watch(async (err, result) => {
+			let name = await instance.playerNames.call(this.data.account);
+			this.$timeout(() => this.name = name);
+		});
+
+		instance
 		.GameInitialized({},{fromBlock: 0, toBlock: 'pending'})
 		.watch(async (err, result) => {
 			let game = await instance.games.call(result.args.gameId);
@@ -100,6 +107,8 @@ class BattleshipService {
 		let result = [
 			"player1",
 			"player2",
+			"player1Name",
+			"player2Name",
 			"currentPlayer",
 			"winner",
 			"gameState",

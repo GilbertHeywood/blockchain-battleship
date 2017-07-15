@@ -1,7 +1,7 @@
 <div class="container">
 	<div class="row">
 		<div class="col-md-6">
-			<h1>Game</h1>
+			<h1>Game - {{$ctrl.data.player1Name}} vs {{$ctrl.data.player2Name}}</h1>
 			<p ng-show="$ctrl.loaded">
 				State: {{$ctrl.currentState}}
 			</p>
@@ -49,9 +49,10 @@
 							ng-click="$ctrl.layPiece($index,$parent.$index)"
 							ng-class='{
 								"laying": $ctrl.laying.x == $index && $ctrl.laying.y == $parent.$index,
+								"other-board-cell": $ctrl.data.gameState.toNumber() < 2,
 								"placed": ele > 0,
 								"hit": ele < 0,
-								"missed": ele > $ctrl.maxBoatLength
+								"missed": ele > $ctrl.maxBoatLength,
 							}'>
 							<span ng-show="ele != 0 && ele <= $ctrl.maxBoatLength">
 								{{ele < 0 ? ele * -1 : ele}}
@@ -64,6 +65,7 @@
 					&& $ctrl.data.gameState.toNumber() == 1 
 					&& $ctrl.numberOfShipsPlaced($ctrl.board) == $ctrl.maxBoatLength + 1 - $ctrl.minBoatLength"
 				class="btn btn-success"
+				style="margin-top: 50px;"
 				ng-click="$ctrl.startGame()">
 				Start game
 			</button>
@@ -142,7 +144,7 @@
 								"missed": ele < 0,
 								"hit": ele > $ctrl.maxBoatLength,
 								"other-board-cell": !$ctrl.moving && $ctrl.myTurn,
-								"laying": $ctrl.moving && $ctrl.x == $parent.$index && $ctrl.y == $index
+								"laying": $ctrl.moving && $ctrl.x == $index && $ctrl.y == $parent.$index
 							}'>
 							<span ng-show="ele < 0">
 								{{ele * -1}}

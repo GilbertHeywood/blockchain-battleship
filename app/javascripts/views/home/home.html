@@ -2,6 +2,10 @@
 	<div class="row">
 		<div class="col-md-6 col-md-offset-3">
 			<h1>Battle ship</h1>
+			<button class="btn btn-success" ng-hide="$ctrl.Battleship.name" ng-click="$ctrl.setName()">
+				Set my name
+			</button>
+			<p>{{$ctrl.Battleship.name}}</p>
 		</div>
 	</div>
 	<div class="row">
@@ -13,18 +17,18 @@
 			<table class="table table-hover">
 				<tr class="games">
 					<th></th>
-					<th>Game Id</th>
 					<th>Game Pot</th>
+					<th>Other player</th>
 				</tr>
-				<tr class="games" ng-repeat="game in $ctrl.myGames">
+				<tr class="games" style="cursor: pointer;" ng-click="$ctrl.playGame(game)" ng-repeat="game in $ctrl.myGames">
 					<td>
 						{{$index+1}}
 					</td>
 					<td>
-						<a href="" style="cursor: pointer;" ng-click="$ctrl.playGame(game)">{{game.id}}</a>
+						{{game.pot}}
 					</td>
 					<td>
-						{{game.pot}}
+						{{game.player2Name}}
 					</td>
 				</tr>
 			</table>
@@ -36,18 +40,18 @@
 			<table class="table table-hover">
 				<tr class="games">
 					<th></th>
-					<th>Game Id</th>
 					<th>Game Pot</th>
+					<th>Other player</th>
 				</tr>
-				<tr class="games" ng-repeat="game in $ctrl.joinedGames">
+				<tr class="games" style="cursor: pointer;" ng-click="$ctrl.playGame(game)" ng-repeat="game in $ctrl.joinedGames">
 					<td>
 						{{$index+1}}
 					</td>
 					<td>
-						<a href="" style="cursor: pointer;" ng-click="$ctrl.playGame(game)">{{game.id}}</a>
+						{{game.pot}}
 					</td>
 					<td>
-						{{game.pot}}
+						{{game.player1Name}}
 					</td>
 				</tr>
 			</table>

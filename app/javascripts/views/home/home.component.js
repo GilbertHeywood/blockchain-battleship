@@ -14,9 +14,20 @@ class Home {
       alert(e)
     }
   }
+  async setName() {
+    let name = prompt("What's your new name? (Max 32 characters)");
+    name = name.substring(0,32);
+    let result = await this.Battleship.transaction('setName',[name]);
+    this.Battleship.name = name;
+  }
   async joinGame(game){
     let amountToBet = game.pot.toNumber() / 2;
-    let result = await this.Battleship.transaction('joinGame',[game.id],{value: amountToBet});
+    try{
+      if(!this.Battleship.name) throw {};
+      let result = await this.Battleship.transaction('joinGame',[game.id],{value: amountToBet});
+    }catch(e){
+      alert("Make sure your name is set to join a game");
+    }
   }
   async playGame(game){
     this.$state.go('game',{id: game.id});

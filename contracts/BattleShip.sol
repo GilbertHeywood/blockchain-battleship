@@ -7,6 +7,8 @@ contract BattleShip {
     struct Game {
         address player1;
         address player2;
+        string player1Name;
+        string player2Name;
         address currentPlayer;
         address winner;
         GameState gameState;
@@ -16,15 +18,17 @@ contract BattleShip {
         mapping(address => bool[4]) playerShips;
     }
 
+    mapping(address => string) public playerNames;
     mapping(bytes32 => Game) public games;
     mapping(address => bytes32[]) playerGames;
 
     uint8 public maxBoatLength;
     uint8 public minBoatLength;
 
-
     // otherPlayerBoard
     int8[10][10] otherPlayerBoard;
+
+    event PlayerSetName(address player, string name);
 
     event GameInitialized(bytes32 gameId, address player1, bool player1GoesFirst, uint pot);
     event GameJoined(bytes32 gameId, address player2);
@@ -43,9 +47,19 @@ contract BattleShip {
     event IsPlayerCalled(bytes32 gameId, address player);
     event LogCurrentState(bytes32 gameId, GameState state);
 
+    function stringToBytes32(string memory source) returns (bytes32 result) {
+        assembly {
+            result := mload(add(source, 32))
+        }
+    }
+
+    modifier hasName() {
+        if(stringToBytes32(playerNames[msg.sender]) != bytes32(0x0)) _;
+    }
 
     modifier isPlayer(bytes32 gameId) {
         IsPlayerCalled(gameId,msg.sender);
+
         if(msg.sender == games[gameId].player1 || msg.sender == games[gameId].player2) _;
     }
 
@@ -62,6 +76,7 @@ contract BattleShip {
         if(number < 0) return uint(-1 * number);
         return uint(number);
     }
+
 
     function initialiseBoard(bytes32 gameId, address player) isState(gameId, GameState.Created) internal {
         for(uint8 i = 0; i < 10; i++) {
@@ -81,11 +96,16 @@ contract BattleShip {
         minBoatLength = 2;
     }
 
+    function setName(string name){
+        playerNames[msg.sender] = name;
+        PlayerSetName(msg.sender,name);
+    }
+
     function findPot(bytes32 gameId) constant returns(uint){
         return games[gameId].pot;
     }
 
-    function newGame(bool goFirst) payable returns(bytes32){
+    function newGame(bool goFirst) hasName payable returns(bytes32){
         require(msg.value > 0);
         // Generate game id based on player's addresses and current block number
         bytes32 gameId = sha3(msg.sender, block.number);
@@ -93,6 +113,8 @@ contract BattleShip {
         games[gameId] = Game(
             msg.sender, // address player1;
             address(0), // address player2;
+            playerNames[msg.sender], //     string player1Name;
+            "",  // string player2Name;
             address(0), // address currentPlayer;
             address(0), // address winner;
             GameState.Created, // GameState gameState;
@@ -107,10 +129,11 @@ contract BattleShip {
         return gameId;
     }
 
-    function joinGame(bytes32 gameId) isState(gameId, GameState.Created) payable {
+    function joinGame(bytes32 gameId) hasName isState(gameId, GameState.Created) payable {
         require(games[gameId].player2 == address(0));
         require(msg.value == games[gameId].pot / 2);
         games[gameId].player2 = msg.sender;
+        games[gameId].player2Name = playerNames[msg.sender];
         playerGames[msg.sender].push(gameId);
         if(games[gameId].currentPlayer == address(0)){
             games[gameId].currentPlayer = msg.sender;
