@@ -6,6 +6,7 @@ class Game {
     this.gameId = this.$state.params.id;
     this.laying = {};
     this.setup();
+    this.columns = ["A","B","C","D","E","F","G","H","I","J"];
     this.Battleship.watch('MadeMove', async (err, result) => {
       if(this.loaded){
         if(result.args.currentPlayer == this.Battleship.data.account){
@@ -16,14 +17,21 @@ class Game {
       }
     });
     this.Battleship.watch('StateChanged', async (err, result) => {
-      if(this.loaded) await this.getGameData();
+      if(this.loaded) {
+        await this.getGameData();
+        try{
+          await this.getOtherBoard();
+        }catch(e){
+          console.log(e);
+        }
+      }
     });
     this.Battleship.watch('HitBattleShip', async (err, result) => {
       if(this.loaded){
         if(result.args.currentPlayer == this.Battleship.data.account){
-          alert(`You got a hit! You hit Battleship with length ${result.args.pieceHit.toNumber()}`);
+          alert(`You got a hit at ${this.columns[result.args.x]}${result.args.y + 1}! You hit a Battleship with length ${result.args.pieceHit.toNumber()}`);
         }else{
-          alert(`Your ship got hit at x:${result.args.x},y:${result.args.y}!`);
+          alert(`Your ship got hit at ${this.columns[result.args.x]}${result.args.y + 1}!`);
         }
       }
     });
@@ -38,12 +46,19 @@ class Game {
       if(this.loaded) await this.getGameData();
     });
   }
+  get myTurn(){
+    return this.Battleship.data.account == this.data.currentPlayer;
+  }
   async setup(){
     await this.getGameData();
     await this.getBattleshipDimensions();
     await this.getBoard();
-    await this.getOtherBoard();
-    this.loaded = true;
+    try{
+      await this.getOtherBoard();
+    }catch(e){
+      console.log(e);
+    }
+    this.$timeout(() => this.loaded = true);
   }
   numberOfShipsPlaced(board){
     if(!board) return 0;
@@ -140,6 +155,8 @@ class Game {
     }
     if(!this.moving){
       this.moving = true;
+      this.x = x;
+      this.y = y;
       try{
         let tx = await this.Battleship.transaction('makeMove',[this.gameId,x,y]);
         console.log(tx);

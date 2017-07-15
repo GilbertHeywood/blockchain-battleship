@@ -7,6 +7,12 @@ module.exports = {
       host: 'localhost',
       port: 8545,
       network_id: '*' // Match any network id
+    },
+    kovan: {
+      protocol: 'https',
+    	host: 'kovan.infura.io/5UyreKP8Xw5prCRt5yGr',
+      port: 443,
+    	network_id: 42
     }
   },
   build: "webpack"

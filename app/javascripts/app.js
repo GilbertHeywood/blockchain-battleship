@@ -22,13 +22,13 @@ import { homeComponent, homeState } from './views/home';
 import { gameComponent, gameState } from './views/game';
 
 export default angular.module('app', [
-    angularUiRouter
-  ])
+	angularUiRouter
+])
 
-  .run(appInit)
-  .config(routing)
+.run(appInit)
+.config(routing)
 
-  .config(homeState).component('home',homeComponent)
-  .config(gameState).component('game',gameComponent)
+.config(homeState).component('home',homeComponent)
+.config(gameState).component('game',gameComponent)
 
-  .service('Battleship',Battleship);
+.service('Battleship',Battleship);

@@ -7,10 +7,11 @@ class Home {
   	let value = prompt("How much are you putting into the pot?");
   	try{
   		value = parseInt(value);
-      if(isNaN(value)) throw {};
+      if(isNaN(value)) throw "Please enter a number!";
+      if(value <= 0) throw "Please enter a number greater than zero!";
   		let result = await this.Battleship.transaction('newGame',[true],{value: value});
     }catch(e){
-      alert("Please enter a number!")
+      alert(e)
     }
   }
   async joinGame(game){

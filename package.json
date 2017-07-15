@@ -34,7 +34,7 @@
     "ngtemplate-loader": "^2.0.1",
     "style-loader": "^0.13.1",
     "truffle-contract": "^1.1.6",
-    "web3": "^0.18.2",
+    "web3": "git://github.com/ethereum/web3.js.git#develop",
     "webpack": "^2.2.1",
     "webpack-dev-server": "^2.3.0"
   },

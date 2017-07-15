@@ -1,6 +1,7 @@
 body {
-  margin-top: 10%;
+  padding: 60px;
   font-family: "Open Sans", sans-serif;
+  background: black;
 }
 
 label {
@@ -22,6 +23,7 @@ button {
 h1, h2 {
   display: inline-block;
   vertical-align: middle;
+  color: #27ae60;
   margin-top: 0px;
   margin-bottom: 10px;
 }
@@ -37,6 +39,23 @@ h3 {
   font-size: 24px;
 }
 
+p, b {
+  color: #27ae60;
+}
+
+.add-new {
+  cursor: pointer;
+}
+
+tr {
+  cursor: pointer;
+  color: white;
+}
+
+tr.games:hover {
+  color: #27ae60;
+}
+
 .black {
   color: black;
 }
@@ -45,26 +64,74 @@ h3 {
   color: black;
 }
 
+.cell {
+  width: 40px;
+  height: 40px;
+  background: transparent;
+  border-radius: 0px;
+  border: 1px white solid;
+}
+
+@media (max-width: 768px) {
+  .cell {
+    width: 25px !important;
+    height: 25px !important;
+  }
+  body {
+    padding: 0px;
+  }
+}
+
+.column {
+  text-align: center;
+}
+
+.left-border {
+  border-left: 1px white solid;
+}
+
+.left-border {
+  border-left: 1px white solid;
+}
+
+.top-border {
+  border-top: 1px white solid;
+}
+
+.bottom-border {
+  border-bottom: 1px white solid;
+}
+
+.pointers {
+  margin-top: 15px;
+  float: left;
+}
+
 .hint {
   color: #666;
 }
 
 .laying {
-  background: blue;
+  background: #2980b9;
   color: white;
 }
 
+.other-board-cell:hover{
+  background: #3498db;
+}
+
 .placed {
-  background: black;
+  background: #bdc3c7;
   color: white;
 }
 
 .hit {
-  background: red;
+  background: #c0392b;
   color: white;
 }
 
 .missed {
-  background: green;
+  background: #27ae60;
   color: white;
 }
+
