@@ -1,20 +1,15 @@
 // Import libraries we need.
+import 'web3';
 import { default as Web3} from 'web3';
 import { default as contract } from 'truffle-contract';
 
 // Import our contract artifacts and turn them into usable abstractions.
 import battleshipDef from '../../../build/contracts/Battleship.json'
 
-// Battleship is our usable abstraction, which we'll use through the code below.
 var Battleship = contract(battleshipDef);
-let provider_url = "http://localhost:8545";
-// provider_url = "https://kovan.infura.io/5UyreKP8Xw5prCRt5yGr";
-// any web3 provider
-console.log(provider_url);
-var provider = new Web3.providers.HttpProvider(provider_url);
 
 // give it web3 powers!
-Battleship.setProvider(provider);
+Battleship.setProvider(web3.currentProvider);
 
 class BattleshipService {
 

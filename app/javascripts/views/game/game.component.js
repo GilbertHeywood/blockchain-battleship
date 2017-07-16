@@ -29,9 +29,9 @@ class Game {
     this.Battleship.watch('HitBattleShip', async (err, result) => {
       if(this.loaded){
         if(result.args.currentPlayer == this.Battleship.data.account){
-          alert(`You got a hit at ${this.columns[result.args.x]}${result.args.y + 1}! You hit a Battleship with length ${result.args.pieceHit.toNumber()}`);
+          alert(`You got a hit at ${this.columns[result.args.x]}${parseInt(result.args.y) + 1}! You hit a Battleship with length ${result.args.pieceHit.toNumber()}`);
         }else{
-          alert(`Your ship got hit at ${this.columns[result.args.x]}${result.args.y + 1}!`);
+          alert(`Your ship got hit at ${this.columns[result.args.x]}${parseInt(result.args.y) + 1}!`);
         }
       }
     });
