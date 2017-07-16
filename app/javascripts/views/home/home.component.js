@@ -4,8 +4,9 @@ class Home {
     this.$state = $state;
   }
   async newGame(){
-  	let value = prompt("How much are you putting into the pot?");
-  	try{
+    try{
+      if(!this.Battleship.name) throw "You have to set your name first";
+  	 let value = prompt("How much are you putting into the pot?");
   		value = parseInt(value);
       if(isNaN(value)) throw "Please enter a number!";
       if(value <= 0) throw "Please enter a number greater than zero!";
