@@ -1,7 +1,7 @@
 <div class="container">
 	<div class="row">
 		<div class="col-md-6 col-md-offset-3">
-			<h1>Battle ship</h1>
+			<h1>Blockchain Battleship</h1>
 			<button class="btn btn-success" ng-hide="$ctrl.Battleship.name" ng-click="$ctrl.setName()">
 				Set my name
 			</button>
@@ -19,16 +19,20 @@
 					<th></th>
 					<th>Game Pot</th>
 					<th>Other player</th>
+					<th>Winner</th>
 				</tr>
 				<tr class="games" style="cursor: pointer;" ng-click="$ctrl.playGame(game)" ng-repeat="game in $ctrl.myGames">
 					<td>
 						{{$index+1}}
 					</td>
 					<td>
-						{{game.pot}}
+						{{$ctrl.Battleship.ethToWei(game.pot)}} ETH
 					</td>
 					<td>
 						{{game.player2Name}}
+					</td>
+					<td>
+						{{game.winner == game.player1 ? game.player1Name : game.player2Name}}
 					</td>
 				</tr>
 			</table>
@@ -42,6 +46,7 @@
 					<th></th>
 					<th>Game Pot</th>
 					<th>Other player</th>
+					<th>Winner</th>
 				</tr>
 				<tr class="games" style="cursor: pointer;" ng-click="$ctrl.playGame(game)" ng-repeat="game in $ctrl.joinedGames">
 					<td>
@@ -52,6 +57,9 @@
 					</td>
 					<td>
 						{{game.player1Name}}
+					</td>
+					<td>
+						{{game.winner == game.player1 ? game.player1Name : game.player2Name}}
 					</td>
 				</tr>
 			</table>

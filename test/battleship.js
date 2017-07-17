@@ -31,6 +31,16 @@ contract('BattleShip', async (accounts) => {
     assert.equal(name2,"Kevin",'The player2 name wasn\'t set correctly');
   });
 
+  it("should get an error if try to set the same name twice for different players", async () => {
+    battleship = await BattleShip.deployed();
+    try{
+      transactionData = await battleship.setName("Tom",{from: accounts[2]});
+    }catch(e){
+      let name1 = await battleship.playerNames.call(accounts[2]);
+      assert.equal(name1,"",'The player name was set incorrectly');
+    }
+  });
+
   it('should be able to create a new game', async () => {
     transactionData = await battleship.newGame(true,{from: accounts[0], value: 10});
     gameId = transactionData.logs[transactionData.logs.length - 2].args.gameId;

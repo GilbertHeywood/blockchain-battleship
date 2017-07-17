@@ -1,6 +1,7 @@
 class Game {
-  constructor(Battleship,$state,$timeout){
+  constructor($state,$timeout,Battleship,Alert){
     this.Battleship = Battleship;
+    this.Alert = Alert;
     this.$state = $state;
     this.$timeout = $timeout;
     this.gameId = this.$state.params.id;
@@ -12,7 +13,7 @@ class Game {
         if(result.args.currentPlayer == this.Battleship.data.account){
           await [this.getGameData(),this.getBoard(),this.getOtherBoard()];
         }else{
-          await [this.getGameData(),this.getBoard(),this.getOtherBoard(),alert("Move has been placed")];
+          await [this.getGameData(),this.getBoard(),this.getOtherBoard(),this.Alert.add("Move has been placed")];
         }
       }
     });
@@ -29,17 +30,17 @@ class Game {
     this.Battleship.watch('HitBattleShip', async (err, result) => {
       if(this.loaded){
         if(result.args.currentPlayer == this.Battleship.data.account){
-          alert(`You got a hit at ${this.columns[result.args.x]}${parseInt(result.args.y) + 1}! You hit a Battleship with length ${result.args.pieceHit.toNumber()}`);
+          this.Alert.add(`You got a hit at ${this.columns[result.args.x]}${parseInt(result.args.y) + 1}! You hit a Battleship with length ${result.args.pieceHit.toNumber()}`);
         }else{
-          alert(`Your ship got hit at ${this.columns[result.args.x]}${parseInt(result.args.y) + 1}!`);
+          this.Alert.add(`Your ship got hit at ${this.columns[result.args.x]}${parseInt(result.args.y) + 1}!`);
         }
       }
     });
     this.Battleship.watch('GameEnded', async (err, result) => {
       if(result.args.winner == this.Battleship.data.account){
-        alert(`You're the winner :D`);
+        this.Alert.add(`You're the winner :D`);
       }else{
-        alert(`You're the loser :D`);
+        this.Alert.add(`You're the loser :D`);
       }
     });
     this.Battleship.watch('WinningsWithdrawn', async (err, result) => {
@@ -110,7 +111,7 @@ class Game {
     this.$timeout(() => {
       this.otherBoard = boardTranspose;
       this.canWin = this.ableToWin();
-      if(this.canWin) alert("You can win! Press the win button to tell the world!");
+      if(this.canWin) this.Alert.add("You can win! Press the win button to tell the world!");
     });
   }
   async startGame(){
@@ -118,7 +119,7 @@ class Game {
       await this.Battleship.transaction('finishPlacing',[this.gameId]);
       await this.getGameData();
     }catch(e){
-      alert("Other player is still setting up their board");
+      this.Alert.add("Other player is still setting up their board");
     }
   }
   ableToWin(){
@@ -150,7 +151,7 @@ class Game {
   }
   async makeMove(x,y){
     if(this.Battleship.data.account != this.data.currentPlayer){
-      alert("it's not your turn, buddy");
+      this.Alert.add("it's not your turn, buddy");
       return;
     }
     if(!this.moving){
@@ -161,7 +162,7 @@ class Game {
         let tx = await this.Battleship.transaction('makeMove',[this.gameId,x,y]);
         console.log(tx);
       }catch(e){
-        alert("Move has not been placed");
+        this.Alert.add("Move has not been placed");
       }
       this.moving = false;
     }
@@ -193,14 +194,14 @@ class Game {
     }catch(e){
       console.log(e);
       let length = 1 + Math.max(Math.abs(this.laying.x - x),Math.abs(this.laying.y - y));
-      alert(`Have you already laid a length ${length} boat?`);
+      this.Alert.add(`Have you already laid a length ${length} boat?`);
     }
     this.placing = false;
   }
 
 }
 
-Game.$inject = ['Battleship','$state','$timeout'];
+Game.$inject = ['$state','$timeout','Battleship','Alert'];
 
 let templateUrl = require('ngtemplate-loader!html-loader!./game.html');
 

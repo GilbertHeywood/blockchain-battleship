@@ -16,6 +16,7 @@ import './utilities.js';
 
 // Load services
 import Battleship from './services/battleship.service';
+import Alert from './services/alert.service';
 
 // Load Views
 import { homeComponent, homeState } from './views/home';
@@ -31,4 +32,5 @@ export default angular.module('app', [
 .config(homeState).component('home',homeComponent)
 .config(gameState).component('game',gameComponent)
 
+.service('Alert',Alert)
 .service('Battleship',Battleship);

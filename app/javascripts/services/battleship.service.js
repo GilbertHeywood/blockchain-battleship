@@ -41,12 +41,19 @@ class BattleshipService {
 
 		this.states = ['Created', 'SettingUp', 'Playing', 'Finished'];
 	}
+
+	weiToEth(wei){
+		return parseInt(wei*Math.pow(10,18));
+	}
+
+	ethToWei(eth){
+		return parseInt(eth/Math.pow(10,18));
+	}
 	
 	async transaction(method,args=[],vars={value: 0}) {
 		await this.loaded.promise;
 		let instance = await Battleship.deployed();
 		angular.extend(vars,{from: this.data.account, gas: 2000000});
-		console.log(method, ...args, vars);
 		return await instance[method](...args,vars);
 	}
 
@@ -57,6 +64,7 @@ class BattleshipService {
 		console.log(attribute,...args,vars);
 		let result = await instance[attribute].call(...args,vars);
 		if(attribute == 'games') result = this.structToObject(result);
+
 		return result;
 	}
 
@@ -84,7 +92,11 @@ class BattleshipService {
 			let game = await instance.games.call(result.args.gameId);
 			game = this.structToObject(game);
 			game.id = result.args.gameId;
-			this.$timeout(() => this.data.games.push(game));
+			this.$timeout(() => {
+				this.data.games = this.data.games.filter((_game) => _game.id != game.id);
+				this.data.games.push(game);
+				console.log(this.data.games);
+			});
 		});
 
 		instance
@@ -93,8 +105,10 @@ class BattleshipService {
 			let game = await instance.games.call(result.args.gameId);
 			game = this.structToObject(game);
 			game.id = result.args.gameId;
-			this.data.games = this.data.games.filter((_game) => _game.id != game.id);
-			this.$timeout(() => this.data.games.push(game));
+			this.$timeout(() => {
+				this.data.games = this.data.games.filter((_game) => _game.id != game.id);
+				this.data.games.push(game);
+			});
 		});
 	}
 

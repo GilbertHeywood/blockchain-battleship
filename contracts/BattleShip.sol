@@ -19,6 +19,7 @@ contract BattleShip {
     }
 
     mapping(address => string) public playerNames;
+    mapping(bytes32 => bool) public playerNameExists;
     mapping(bytes32 => Game) public games;
     mapping(address => bytes32[]) playerGames;
 
@@ -97,7 +98,11 @@ contract BattleShip {
     }
 
     function setName(string name){
+        require(bytes(name).length <= 30);
+        bytes32 bytesname = stringToBytes32(name);
+        require(!playerNameExists[bytesname]);
         playerNames[msg.sender] = name;
+        playerNameExists[bytesname] = true;
         PlayerSetName(msg.sender,name);
     }
 
