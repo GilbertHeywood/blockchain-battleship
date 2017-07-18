@@ -14,7 +14,7 @@ class Home {
       let eth = this.Battleship.weiToEth(value);
   		let result = await this.Battleship.transaction('newGame',[true],{value: eth});
     }catch(e){
-      this.Alert.add(e)
+      this.Alert.add(e);
     }
   }
   async setName() {
@@ -30,7 +30,7 @@ class Home {
   }
   async joinGame(game){
     let amountToBet = game.pot.toNumber() / 2;
-    let value = confirm(`Do you want to join this game for ${this.Battleship.weiToEth(amountToBet)} ETH?`);
+    let value = confirm(`Do you want to join this game for ${this.Battleship.ethToWei(amountToBet)} ETH?`);
     if(!value) return;
     try{
       if(!this.Battleship.name) throw "Make sure your name is set to join a game";

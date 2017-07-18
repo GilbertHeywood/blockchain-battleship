@@ -98,9 +98,9 @@ contract BattleShip {
     }
 
     function setName(string name){
-        require(bytes(name).length <= 30);
+        // require(bytes(name).length <= 30);
         bytes32 bytesname = stringToBytes32(name);
-        require(!playerNameExists[bytesname]);
+        // require(!playerNameExists[bytesname]);
         playerNames[msg.sender] = name;
         playerNameExists[bytesname] = true;
         PlayerSetName(msg.sender,name);

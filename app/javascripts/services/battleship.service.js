@@ -1,7 +1,7 @@
 // Import libraries we need.
-import 'web3';
-import { default as Web3} from 'web3';
+import { currentProvider, default as Web3 } from 'web3';
 import { default as contract } from 'truffle-contract';
+
 
 // Import our contract artifacts and turn them into usable abstractions.
 import battleshipDef from '../../../build/contracts/Battleship.json'
@@ -9,6 +9,7 @@ import battleshipDef from '../../../build/contracts/Battleship.json'
 var Battleship = contract(battleshipDef);
 
 // give it web3 powers!
+console.log(web3.currentProvider);
 Battleship.setProvider(web3.currentProvider);
 
 class BattleshipService {

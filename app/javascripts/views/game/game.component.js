@@ -1,5 +1,6 @@
 class Game {
-  constructor($state,$timeout,Battleship,Alert){
+  constructor($state,$timeout,Battleship,Alert,P2P){
+    console.log('P2P:', P2P);
     this.Battleship = Battleship;
     this.Alert = Alert;
     this.$state = $state;
@@ -201,7 +202,7 @@ class Game {
 
 }
 
-Game.$inject = ['$state','$timeout','Battleship','Alert'];
+Game.$inject = ['$state','$timeout','Battleship','Alert','P2P'];
 
 let templateUrl = require('ngtemplate-loader!html-loader!./game.html');
 

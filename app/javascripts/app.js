@@ -17,6 +17,7 @@ import './utilities.js';
 // Load services
 import Battleship from './services/battleship.service';
 import Alert from './services/alert.service';
+import P2P from './services/p2p.service';
 
 // Load Views
 import { homeComponent, homeState } from './views/home';
@@ -32,5 +33,6 @@ export default angular.module('app', [
 .config(homeState).component('home',homeComponent)
 .config(gameState).component('game',gameComponent)
 
+.service('P2P',P2P)
 .service('Alert',Alert)
 .service('Battleship',Battleship);
