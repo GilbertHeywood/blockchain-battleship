@@ -168,7 +168,15 @@ class Game {
       this.moving = false;
     }
   }
-  async layPiece(x,y){
+  async saveBoard(){
+    let flattened_board = this.board.reduce((c, row) => {
+      return c + row.reduce((c, ele) => {
+        return c + ele;
+      },'');
+    },'');
+    let result = await this.Battleship.transaction('saveBoard',[this.gameId,flattened_board],{gas: 4900000});
+  }
+  layPiece(x,y){
     if(this.board[y][x] > 0) return;
     if(this.placing) return;
     this.placing = true;
@@ -182,8 +190,27 @@ class Game {
         let startY = Math.min(this.laying.y,y);
         let endX = Math.max(this.laying.x,x);
         let endY = Math.max(this.laying.y,y);
-        await this.Battleship.transaction('placeShip',[this.gameId,startX,endX,startY,endY]);
-        await this.getBoard();
+        // await this.Battleship.transaction('placeShip',[this.gameId,startX,endX,startY,endY]);
+        // await this.getBoard();
+        let length;
+        if(startX == endX){
+          length = endY - startY + 1;
+          if(this.laying[length]) throw `Have you already laid a length ${length} boat?`
+          while(startY <= endY) {
+            this.board[startY][startX] = length;
+            startY += 1;
+          }
+        }else if(startY == endY){
+          length = endX - startX + 1;
+          if(this.laying[length]) throw `Have you already laid a length ${length} boat?`
+          while(startX <= endX) {
+            this.board[startY][startX] = length;
+            startX += 1;
+          }
+        }else{
+          throw `Boats cannot be slanted`
+        }
+        this.laying[length] = true;
         this.placed = false;
         this.laying.x = null;
         this.laying.y = null;
@@ -193,13 +220,14 @@ class Game {
         this.placed = true;
       }
     }catch(e){
-      console.log(e);
-      let length = 1 + Math.max(Math.abs(this.laying.x - x),Math.abs(this.laying.y - y));
-      this.Alert.add(`Have you already laid a length ${length} boat?`);
+      this.Alert.add(e);
     }
     this.placing = false;
   }
-
+  get allShipsPlaced(){
+    if(!this.maxBoatLength || !this.minBoatLength) return;
+    return this.numberOfShipsPlaced(this.board) == this.maxBoatLength + 1 - this.minBoatLength;
+  }
 }
 
 Game.$inject = ['$state','$timeout','Battleship','Alert','P2P'];

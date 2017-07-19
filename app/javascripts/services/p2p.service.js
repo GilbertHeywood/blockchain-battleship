@@ -1,5 +1,5 @@
 import { default as io } from 'socket.io-client';
-import { default as  Socketiop2p} from 'socket.io-p2p';
+import { default as Socketiop2p} from 'socket.io-p2p';
 
 
 class P2PService {

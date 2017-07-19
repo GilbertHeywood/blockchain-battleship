@@ -17,6 +17,20 @@ function printBoard(board) {
   return printedBoard;
 }
 
+let sample_board = [ 
+  [2,3,4,5,0,0,0,0,0,0],
+  [2,3,4,5,0,0,0,0,0,0],
+  [0,3,4,5,0,0,0,0,0,0],
+  [0,0,4,5,0,0,0,0,0,0],
+  [0,0,0,5,0,0,0,0,0,0],
+  [0,0,0,0,0,0,0,0,0,0],
+  [0,0,0,0,0,0,0,0,0,0],
+  [0,0,0,0,0,0,0,0,0,0],
+  [0,0,0,0,0,0,0,0,0,0],
+  [0,0,0,0,0,0,0,0,0,0] 
+];
+
+
 contract('BattleShip', async (accounts) => {
 
   let battleship, transactionData, gameId;
@@ -80,24 +94,8 @@ contract('BattleShip', async (accounts) => {
   });
 
   it('the players should be able to place their pieces', async () => {
-    await battleship.placeShip(gameId,0,1,0,0,{from: accounts[0]});
-    let board = await battleship.showBoard(gameId,{from: accounts[0]});
-    let boardNumbers = board.map((row) => {
-      return row.map((col) => col.toNumber());
-    });
-    assert.equal(boardNumbers[0][0],2,'Piece not placed right');
-    assert.equal(boardNumbers[1][0],2,'Piece not placed right');
-    assert.equal(boardNumbers[2][0],0,'Piece not placed right');
-  });
-
-  it('the players should be able start game onces all pieces put down', async () => {
-    await battleship.placeShip(gameId, 0, 2, 1, 1, {from: accounts[0]});
-    await battleship.placeShip(gameId, 0, 3, 2, 2, {from: accounts[0]});
-    await battleship.placeShip(gameId, 0, 4, 3, 3, {from: accounts[0]});
-    await battleship.placeShip(gameId, 0, 1, 0, 0, {from: accounts[1]});
-    await battleship.placeShip(gameId, 0, 2, 1, 1, {from: accounts[1]});
-    await battleship.placeShip(gameId, 0, 3, 2, 2, {from: accounts[1]});
-    await battleship.placeShip(gameId, 0, 4, 3, 3, {from: accounts[1]});
+    await battleship.saveBoard(gameId, sample_board, {from: accounts[0], gas: 4000000});
+    await battleship.saveBoard(gameId, sample_board, {from: accounts[1], gas: 4000000});
 
     let board1 = await battleship.showBoard(gameId,{from: accounts[0]});
     let board1Numbers = board1.map((row) => {
@@ -108,8 +106,14 @@ contract('BattleShip', async (accounts) => {
     let board2Numbers = board2.map((row) => {
       return row.map((col) => col.toNumber());
     });
+      
+    console.log(board1Numbers,board2Numbers);
+
+    printBoard(board1);
+    printBoard(board2);
     
     await battleship.finishPlacing(gameId);
+
 
     let gameData = await battleship.games.call(gameId);
     assert.equal(gameData[6],2,'Game not able to start even though pieces are down');

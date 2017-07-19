@@ -8,6 +8,10 @@ import battleshipDef from '../../../build/contracts/Battleship.json'
 
 var Battleship = contract(battleshipDef);
 
+Battleship.defaults({
+  gasLimit: 5000000
+});
+
 // give it web3 powers!
 console.log(web3.currentProvider);
 Battleship.setProvider(web3.currentProvider);
@@ -54,7 +58,9 @@ class BattleshipService {
 	async transaction(method,args=[],vars={value: 0}) {
 		await this.loaded.promise;
 		let instance = await Battleship.deployed();
-		angular.extend(vars,{from: this.data.account, gas: 2000000});
+		angular.extend(vars,{from: this.data.account});
+		if(!vars.gas) vars.gas = 2000000;
+		console.log(vars);
 		return await instance[method](...args,vars);
 	}
 

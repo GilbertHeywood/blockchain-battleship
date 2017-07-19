@@ -61,15 +61,12 @@
 					</td>
 				</tr>
 			</table>
-			<button ng-show="$ctrl.loaded 
-					&& $ctrl.data.gameState.toNumber() == 1 
-					&& $ctrl.numberOfShipsPlaced($ctrl.board) == $ctrl.maxBoatLength + 1 - $ctrl.minBoatLength"
+			<button ng-show="$ctrl.allShipsPlaced"
 				class="btn btn-success"
-				style="margin-top: 50px;"
-				ng-click="$ctrl.startGame()">
-				Start game
+				ng-click="$ctrl.saveBoard()"
+				style="margin-top: 50px;">
+				Save board
 			</button>
-
 			<table ng-show="$ctrl.showHelp1" class="table" style="margin-top: 50px;">
 				<tr>
 					<th>Block</th>
