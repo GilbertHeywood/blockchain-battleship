@@ -1,11 +1,12 @@
 import { default as io } from 'socket.io-client';
-import { default as  Socketiop2p} from 'socket.io-p2p';
+import { default as Socketiop2p} from 'socket.io-p2p';
 
+console.log(io);
 
 class P2PService {
   constructor() {
     this.privateButton = {};
-    let socket = io();
+    let socket = io('http://localhost:3000');
     let opts = {peerOpts: {trickle: false}, autoUpgrade: false};
     this.p2psocket = new Socketiop2p(socket, opts, () =>  {
       this.privateButton.disabled = false
