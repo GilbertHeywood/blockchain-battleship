@@ -1,8 +1,6 @@
 import { default as io } from 'socket.io-client';
 import { default as Socketiop2p} from 'socket.io-p2p';
 
-console.log(io);
-
 class P2PService {
   constructor() {
     this.privateButton = {};
@@ -12,11 +10,11 @@ class P2PService {
       this.privateButton.disabled = false
       this.p2psocket.emit('peer-obj', 'Hello there. I am ' + this.p2psocket.peerId)
     });
-    this.p2psocket.on('peer-msg', function (data) {
+    this.p2psocket.on('peer-msg',  (data) => {
       console.log(data);
     })
 
-    this.p2psocket.on('go-private', function () {
+    this.p2psocket.on('go-private',  () => {
       this.goPrivate()
     });
   }

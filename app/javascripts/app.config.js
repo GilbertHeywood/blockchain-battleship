@@ -1,6 +1,5 @@
 appInit.$inject = [];
-export function appInit(){
-  
+export function appInit(){ 
 };
 
 routing.$inject = ['$urlRouterProvider', '$locationProvider'];
